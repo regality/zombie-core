@@ -19,25 +19,25 @@ function autoloadModel($class) {
 
 function autoloadSession($class) {
    if (substr($class, -7) == 'Session') {
-      include($GLOBALS['zombie_root'] . '/brainz/session/' . $class . '.php');
+      include($GLOBALS['zombie_root'] . '/zombie-core/session/' . $class . '.php');
    }
 }
 
 function autoloadQuery($class) {
    if (substr($class, -5) == 'Query') {
-      include($GLOBALS['zombie_root'] . '/brainz/database/' . $class . '.php');
+      include($GLOBALS['zombie_root'] . '/zombie-core/database/' . $class . '.php');
    }
 }
 
 function autoloadModelBase($class) {
    if (substr($class, -9) == 'ModelBase') {
-      include($GLOBALS['zombie_root'] . '/brainz/model/' . $class . '.php');
+      include($GLOBALS['zombie_root'] . '/zombie-core/model/' . $class . '.php');
    }
 }
 
 function autoloadController($class) {
    if (substr($class, -10) == 'Controller') {
-      include($GLOBALS['zombie_root'] . '/brainz/controllers/' . $class . '.php');
+      include($GLOBALS['zombie_root'] . '/zombie-core/controllers/' . $class . '.php');
    }
 }
 

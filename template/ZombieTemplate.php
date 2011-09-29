@@ -48,7 +48,7 @@ abstract class ZombieTemplate {
       array_push(
          $this->files,
          new TemplateFile($this->config['zombie_root'] . "/apps/" . $this->app . "/" . $this->app . ".php",
-                          $this->config['zombie_root'] . "/brainz/template/" . $this->template . "/app/app.php")
+                          $this->config['zombie_root'] . "/zombie-core/template/" . $this->template . "/app/app.php")
       );
    }
 
@@ -75,7 +75,7 @@ abstract class ZombieTemplate {
          array_push(
             $this->files,
             new TemplateFile($model_file,
-                             $this->config['zombie_root'] . "/brainz/template/" . $this->template . "/model/model.php")
+                             $this->config['zombie_root'] . "/zombie-core/template/" . $this->template . "/model/model.php")
          );
       } else {
          echo "Model already exists. Not creating model.\n\n";
@@ -86,7 +86,7 @@ abstract class ZombieTemplate {
       array_push(
          $this->files,
          new TemplateFile($this->config['zombie_root'] . "/apps/" . $this->app . "/views/" . $view_name . ".php",
-                          $this->config['zombie_root'] . "/brainz/template/" . $this->template . "/app/views/" . $view_name . ".php")
+                          $this->config['zombie_root'] . "/zombie-core/template/" . $this->template . "/app/views/" . $view_name . ".php")
       );
    }
 
@@ -94,7 +94,7 @@ abstract class ZombieTemplate {
       array_push(
          $this->files,
          new TemplateFile($this->config['zombie_root'] . "/apps/" . $this->app . "/views/scripts/" . $script_name . ".js",
-                          $this->config['zombie_root'] . "/brainz/template/" . $this->template . "/app/views/scripts/" . $script_name . ".js")
+                          $this->config['zombie_root'] . "/zombie-core/template/" . $this->template . "/app/views/scripts/" . $script_name . ".js")
       );
    }
 
@@ -102,13 +102,13 @@ abstract class ZombieTemplate {
       array_push(
          $this->files,
          new TemplateFile($this->config['zombie_root'] . "/apps/" . $this->app . "/views/css/" . $css_name . ".css",
-                          $this->config['zombie_root'] . "/brainz/template/" . $this->template . "/app/views/css/" . $css_name . ".css")
+                          $this->config['zombie_root'] . "/zombie-core/template/" . $this->template . "/app/views/css/" . $css_name . ".css")
       );
    }
 
    function getField($field_name) {
       $field = new TemplateFile("/dev/null",
-          $this->config['zombie_root'] . "/brainz/template/fields/" . $field_name . ".php");
+          $this->config['zombie_root'] . "/zombie-core/template/fields/" . $field_name . ".php");
       return $field;
    }
 
