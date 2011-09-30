@@ -1,6 +1,6 @@
 <?php
 
-require(__DIR__ . '/cssmin.php');
+require_once(__DIR__ . '/ssp.php');
 
 function get_dir_contents($dir, $types = array("dir", "file")) {
    $files = array();
@@ -201,27 +201,36 @@ function compile_css($version) {
       $css_file = __DIR__ . "/../../../apps/" . $app . "/views/css/main.css";
       $mobile_css_file = __DIR__ . "/../../../apps/" . $app . "/views/css/mobile-main.css";
       if (file_exists($css_file)) {
-         echo "added $css_file\n";
-         $all_css .= file_get_contents($css_file);
+         $css = file_get_contents($css_file);
+         $c = new CssFile($css, $version);
+         $all_css .= $c->render(true);
+         echo "added $css_file to main\n";
       }
       if (file_exists($mobile_css_file)) {
-         $all_mobile_css .= file_get_contents($mobile_css_file);
+         $mobile_css .= file_get_contents($mobile_css_file);
       } else if (file_exists($css_file)) {
-         $all_mobile_css .= file_get_contents($css_file);
+         $mobile_css_file = $css_file;
+         $mobile_css .= file_get_contents($css_file);
+      } else {
+         $mobile_css = false;
+      }
+      if ($mobile_css) {
+         $css = file_get_contents($mobile_css);
+         $c = new CssFile($mobile_css, $version);
+         $all_mobile_css .= $c->render(true);
+         echo "added $mobile_css_file to mobile\n";
       }
    }
-   $compiled_css = compile_css_file($all_css, $version);
-   $compiled_mobile_css = compile_css_file($all_mobile_css, $version);
 
    $write_file = realpath(__DIR__ . "/../../../web/build/" . $version . "/css") .
                  "/main.css";
    echo "writing $write_file\n\n";
-   file_put_contents($write_file, $compiled_css);
+   file_put_contents($write_file, $all_css);
 
    $write_file = realpath(__DIR__ . "/../../../web/build/" . $version . "/css") .
                  "/mobile-main.css";
    echo "writing $write_file\n\n";
-   file_put_contents($write_file, $compiled_mobile_css);
+   file_put_contents($write_file, $all_mobile_css);
 }
 
 function copy_images($version) {
