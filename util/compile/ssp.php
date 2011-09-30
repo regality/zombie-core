@@ -47,6 +47,16 @@ class CssSelector {
                $new_attrs['-ms-filter'] = '"progid:DXImageTransform.Microsoft.Alpha(opacity=' . intval($value * 100) . ')"';
                $new_attrs['filter'] = 'alpha(opacity=' . intval($value * 100) . ')';
                break;
+            case 'text-shadow':
+               $parts = preg_match("/(\d+)px (\d+)px (\d+)px #(.+)/", $value, $matches);
+               $x = $matches[1];
+               $y = $matches[2];
+               $strength = $matches[3];
+               $color = $matches[4];
+               $angle = intval(atan($x/$y)*360/2/3.14159265358979323 + 90);
+               // currently this kills opacity, better fix it
+               $new_attrs['filter'] = "\"progid:DXImageTransform.Microsoft.Shadow(direction=$angle,strength=$strength,color=$color)\"";
+               break;
             case 'box-shadow':
                $new_attrs['-webkit-box-shadow'] = $value;
                $new_attrs['-moz-box-shadow'] = $value;
@@ -131,6 +141,9 @@ class CssFile {
       $this->selectors = array();
       for ($i = 0; $i < count($matches[0]); ++$i) {
          $selector = new CssSelector($matches[0][$i]);
+         if (isset($this->selectors[$selector->selector])) {
+            $selector->inherit($this->selectors[$selector->selector]);
+         }
          $this->selectors[$selector->selector] = $selector;
       }
 
@@ -152,7 +165,7 @@ class CssFile {
 
    function substitute_includes() {
       $matches = array();
-      while (preg_match_all('/@include ([a-z0-9\/]+).css;(\s+)?/', $this->css, $matches) > 0) {
+      while (preg_match_all('/@include ([a-z0-9_\-\/]+).css;(\s+)?/', $this->css, $matches) > 0) {
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $sp = explode('/', $matches[1][$i], 2);
             $include_file_name = __DIR__ . "/../../../apps/" . $sp[0] . "/views/css/" . $sp[1] . ".css";
