@@ -14,5 +14,5 @@
    <?php endforeach ?>
 </table>
 <script type="text/javascript">
-undead.util.require("<SLUG>/main");
+zs.util.require("<SLUG>/main");
 </script>

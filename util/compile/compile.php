@@ -124,17 +124,17 @@ function compile_js($version) {
    }
 
    $main_files = array();
-   $loaded_js = "var undead = undead || {};\n" .
-                "undead.settings = undead.settings || {};\n" .
-                "undead.settings.mode = \"prod\";\n" .
-                "undead.settings.version = \"$version\";\n" .
-                "undead.util = undead.util || {};\n" .
-                "undead.util.scripts = undead.util.scripts || {};\n";
+   $loaded_js = "var zs = zs || {};\n" .
+                "zs.settings = zs.settings || {};\n" .
+                "zs.settings.mode = \"prod\";\n" .
+                "zs.settings.version = \"$version\";\n" .
+                "zs.util = zs.util || {};\n" .
+                "zs.util.scripts = zs.util.scripts || {};\n";
    foreach ($compile['main'] as $main) {
       $dir = realpath(__DIR__ . "/../../../apps/" . $main[0] . "/views/scripts");
       $file = $dir . '/' . $main[1];
       array_push($main_files, $file);
-      $loaded_js .= "undead.util.scripts[\"/build/{$version}/js/{$main[0]}/{$main[1]}\"] = \"loaded\";\n";
+      $loaded_js .= "zs.util.scripts[\"/build/{$version}/js/{$main[0]}/{$main[1]}\"] = \"loaded\";\n";
    }
    echo "\nCOMPILING MAIN JS:\n   ";
    echo implode("\n   ", $main_files) . "\n";
@@ -176,7 +176,7 @@ function compile_js($version) {
          $loaded_js = '';
          foreach ($js_files as $js_file) {
             array_push($read_files, $dir . '/' . $js_file);
-            $loaded_js .= "undead.util.scripts[\"/build/{$version}/js/{$app}/{$js_file}\"] = \"loaded\";\n";
+            $loaded_js .= "zs.util.scripts[\"/build/{$version}/js/{$app}/{$js_file}\"] = \"loaded\";\n";
          }
          echo implode("\n   ", $read_files);
          echo "\n";

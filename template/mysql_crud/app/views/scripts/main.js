@@ -9,7 +9,7 @@ $(document).ready(function() {
                   if (data.status == "success") {
                      row.remove();
                   } else {
-                     undead.ui.error("Could not delete <TABLE_NAME>.");
+                     zs.ui.error("Could not delete <TABLE_NAME>.");
                   }
               }
       });
@@ -17,7 +17,7 @@ $(document).ready(function() {
 
    $(".<SLUG>-create").live('click', function() {
       var form = $(this).parents("form");
-      if (!undead.ui.verifyForm(form)) {
+      if (!zs.ui.verifyForm(form)) {
          return false;
       }
       $.ajax({"url":"app.php",
@@ -26,10 +26,10 @@ $(document).ready(function() {
                       "action":"create"},
               "success":function(data) {
                   if (data.status == "success") {
-                     undead.stack.pop("<SLUG>");
-                     undead.stack.refresh("<SLUG>");
+                     zs.stack.pop("<SLUG>");
+                     zs.stack.refresh("<SLUG>");
                   } else {
-                     undead.ui.error("Could not create <TABLE_NAME>.");
+                     zs.ui.error("Could not create <TABLE_NAME>.");
                   }
               }
       });
@@ -38,7 +38,7 @@ $(document).ready(function() {
 
    $(".<SLUG>-update").live('click', function() {
       var form = $(this).parents("form");
-      if (!undead.ui.verifyForm(form)) {
+      if (!zs.ui.verifyForm(form)) {
          return false;
       }
       $.ajax({"url":"app.php",
@@ -47,10 +47,10 @@ $(document).ready(function() {
                       "action":"update"},
               "success":function(data) {
                   if (data.status == "success") {
-                     undead.stack.pop("<SLUG>");
-                     undead.stack.refresh("<SLUG>");
+                     zs.stack.pop("<SLUG>");
+                     zs.stack.refresh("<SLUG>");
                   } else {
-                     undead.ui.error("Could not update <TABLE_NAME>.");
+                     zs.ui.error("Could not update <TABLE_NAME>.");
                   }
               }
       });

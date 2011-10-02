@@ -32,7 +32,7 @@ function renderErrorsJs() {
       <?php foreach ($errors as $error): ?>
       mesg = "<?= $error['errstr'] ?> in <?= $error['errfile'] ?>" +
              " on line <?= $error['errline'] ?>.";
-      undead.ui.error(mesg, <?= $error['errno'] ?>);
+      zs.ui.error(mesg, <?= $error['errno'] ?>);
       <?php endforeach ?>
       });
       </script>

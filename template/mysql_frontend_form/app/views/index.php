@@ -18,5 +18,5 @@
    </div>
 </form>
 <script type="text/javascript">
-undead.util.require("<SLUG>/main");
+zs.util.require("<SLUG>/main");
 </script>

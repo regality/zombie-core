@@ -156,19 +156,19 @@ abstract class Controller {
          echo '<script type="text/javascript">';
          if (!empty($this->errors)) {
             foreach ($this->errors as $error) {
-               echo "undead.ui.error(\"" . 
+               echo "zs.ui.error(\"" . 
                     htmlentities($error, ENT_QUOTES) . "\");\n";
             }
          }
          if (!empty($this->warnings)) {
             foreach ($this->warnings as $warning) {
-               echo "undead.ui.warn(\"" . 
+               echo "zs.ui.warn(\"" . 
                     htmlentities($warning, ENT_QUOTES) . "\");\n";
             }
          }
          if (!empty($this->messages)) {
             foreach ($this->messages as $message) {
-               echo "undead.ui.message(\"" . 
+               echo "zs.ui.message(\"" . 
                     htmlentities($message, ENT_QUOTES) . "\");\n";
             }
          }
