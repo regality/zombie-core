@@ -4,9 +4,9 @@
 # See the LICENSE file.
 
 abstract class SecurePageController extends SecureController {
-   public function run($action = null, $request = null) { 
-      $this->is_page = true; 
-      parent::run($action, $request);
+   public function __construct() {
+      parent::__construct();
+      $this->is_page = true;
    }
 }
 

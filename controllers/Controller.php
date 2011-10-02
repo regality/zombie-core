@@ -20,6 +20,7 @@ abstract class Controller {
       $this->config = getZombieConfig();
       $this->json = array();
       $this->is_page = false;
+      $this->is_secure = false;
       $this->view_base = classToUnderscore(get_class($this));
       $sess_class = underscoreToClass($this->config['session']['type'] . '_' . 'session');
       $this->session = $sess_class::getSession();
@@ -54,9 +55,54 @@ abstract class Controller {
    }
 
    public function run($action = null, $request = null) {
+      if ($this->is_secure) {
+         $this->runSecure($action, $request);
+      } else {
+         $this->prepare($action, $request);
+         $this->init();
+         $this->execute();
+      }
+   }
+
+   public function runSecure($action = null, $request = null) {
       $this->prepare($action, $request);
-      $this->init();
-      $this->execute();
+      if (!isset($this->secure_methods) || in_array($this->action, $this->secure_methods)) {
+         $access = $this->hasAccess();
+      } else {
+         $access = true;
+      }
+      if ($access === true) {
+         $this->execute();
+      } else {
+         if ($this->format == 'json') {
+            $this->json['status'] = $access;
+            $this->renderJson();
+         } else {
+            echo $access;
+         }
+      }
+   }
+
+   public function hasAccess() {
+      if (!$this->session->exists('username')) {
+         return "logged out";
+      }
+      if (isset($this->groups)) {
+         $user_groups = $this->session->get('groups');
+         if (!is_array($user_groups)) {
+            return "access denied";
+         }
+         foreach ($this->groups as $group) {
+            foreach ($user_groups as $user_group) {
+               if ($user_group == $group) {
+                  return true;
+               }
+            }
+         }
+         return 'access denied';
+      } else {
+         return true;
+      }
    }
 
    public function prepare($action, $request) {
