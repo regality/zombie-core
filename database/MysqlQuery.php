@@ -71,20 +71,29 @@ class MysqlQuery extends SqlQuery {
 
    private function getBoundQuery() {
       $query = $this->query;
-      $bound_query = $this->query;
-      foreach ($this->params as $key => $value) {
-         $match = '/\$' . ($key + 1) . '\b/';
-         $query = preg_replace($match, "", $query);
-         while (preg_match($match, $bound_query, $matches, PREG_OFFSET_CAPTURE) > 0) {
-            $len = strlen($key) + 1;
-            $bound_query = substr_replace($bound_query, $value, $matches[0][1], $len);
-         }
-      }
-      if (preg_match('/\$\d+\b/', $query, $match)) {
-         throw new MysqlException("Wrong number of params in query: " .  $query);
-      }
+      $qlen = strlen($query);
+      $bound_query = ''; 
+      for ($i = 0; $i < $qlen; ++$i) {
+         $char = $query[$i];
+         if ($char == '$') {
+            $key = ''; 
+            while ($i < ($qlen - 1) && is_numeric($query[$i + 1])) {
+               ++$i;
+               $key .= $query[$i];
+            }   
+            $key = intval($key) - 1;
+            if (isset($this->params[$key])) {
+               $bound_query .= $this->params[$key];
+            } else {
+               throw new MysqlException("Wrong number of params in query: " .
+                                        $query);
+            }   
+         } else {
+            $bound_query .= $query[$i];
+         }   
+      }   
       return $bound_query;
-   }
+   }   
 
    public function addParams($params) {
       foreach ($params as $param) {
