@@ -7,7 +7,7 @@ require_once(__DIR__ . '/ssp.php');
 
 function get_dir_contents($dir, $types = array("dir", "file")) {
    $files = array();
-   if ($dh = opendir($dir)) {
+   if (file_exists($dir) && $dh = opendir($dir)) {
       while (($file = readdir($dh)) !== false) {
          if (in_array(filetype($dir . $file), $types) &&
              $file != "." && $file != "..")
@@ -46,6 +46,9 @@ function compile_js($version) {
       $js_dir = __DIR__ . "/../../../apps/" . $app . "/views/scripts/";
       $js_files = get_dir_contents($js_dir, array("file"));
       $module_files = array();
+      if (!$js_files) {
+         $js_files = array();
+      }
       foreach ($js_files as $js_file) {
          if (substr_compare($js_file, ".js", -3) === 0) {
             array_push($module_files, $js_file);
@@ -218,7 +221,6 @@ function compile_css($version) {
          $mobile_css = false;
       }
       if ($mobile_css) {
-         $css = file_get_contents($mobile_css);
          $c = new CssFile($mobile_css, $version);
          $all_mobile_css .= $c->render(true);
          echo "added $mobile_css_file to mobile\n";
@@ -242,6 +244,9 @@ function copy_images($version) {
    $apps = get_dir_contents($apps_dir, array('dir'));
    foreach ($apps as $app) {
       $images_src = realpath($apps_dir . $app . "/views/images");
+      if (!$images_src) {
+         continue;
+      }
       $images = get_dir_contents($images_src . "/", array("file"));
       if (count($images) > 0) {
          $image_dest = realpath(__DIR__ . "/../../../web/build/" . $version . "/images") . "/" . $app;
@@ -274,7 +279,9 @@ function compile($options) {
    mkdir(__DIR__ . "/../../../web/build/" . $version . "/css");
    mkdir(__DIR__ . "/../../../web/build/" . $version . "/js");
    mkdir(__DIR__ . "/../../../web/build/" . $version . "/images");
-   mkdir(__DIR__ . "/tmp");
+   if (!file_exists(__DIR__ . "/tmp")) {
+      mkdir(__DIR__ . "/tmp");
+   }
    copy_images($version);
    compile_css($version);
    compile_js($version);
