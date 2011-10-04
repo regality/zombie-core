@@ -201,7 +201,7 @@ class CssFile {
    function build_urls() {
       if ($this->version !== false) {
          $build = "/build/" . $this->version;
-         preg_match_all("/url\(['\"]?(\/images\/[a-z0-9_]+\/[a-z_-]+\.[a-z]+)['\"]?\)/i", $this->css, $matches);
+         preg_match_all("/url\(['\"]?(\/images\/[a-z0-9_]+\/[a-z0-9_\-]+\.[a-z]+)['\"]?\)/i", $this->css, $matches);
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $new_url = "url('" . $build . $matches[1][$i] . "')";
             $this->css = str_replace($matches[0][$i], $new_url, $this->css);
