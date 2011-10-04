@@ -3,8 +3,8 @@
 # licensed under the General Public License version 3.
 # See the LICENSE file.
 
-require_once("zombie-core/util/util.php");
-require_once("zombie-core/util/autoload.php");
+require_once(__DIR__ . "/util/util.php");
+require_once(__DIR__ . "/util/autoload.php");
 
 function cli_main($argv) {
    $argc = count($argv);
@@ -32,18 +32,27 @@ function cli_main($argv) {
       }
 
       $template = (isset($options['template']) ? $options['template'] : 'basic');
-      if (!file_exists("zombie-core/template/" . $template . "/template.php")) {
-         die("unknown template: " . $template . "\n");
+
+      $base_dir = "/config/template";
+      $template_file = realpath(__DIR__ . "/../config/template/" . $template) . "/template.php";
+      if (!file_exists($template_file)) {
+         $base_dir = "/zombie-core/template/";
+         $template_file = __DIR__ . "/template/" . $template . "/template.php";
+         if (!file_exists($template_file)) {
+            die("unknown template: " . $template . "\n");
+         }
       }
 
       $app = $options['app'];
 
-      require(__DIR__ . "/zombie-core/template/" . $template . "/template.php");
+      require_once(__DIR__ . "/template/ZombieTemplate.php");
+
+      require($template_file);
       $template_class = underscoreToClass($template . "_template");
-      $template = new $template_class($template, $app, $options);
+      $template = new $template_class($template, $app, $base_dir, $options);
       $template->run();
    } else if ($action == "compile") {
-      require(__DIR__ . "/zombie-core/util/compile/compile.php");
+      require(__DIR__ . "/util/compile/compile.php");
       compile($options);
    } else if ($action == "kachow") {
       echo "kachow!\n";
