@@ -5,6 +5,7 @@
 
 require_once(__DIR__ . "/util/util.php");
 require_once(__DIR__ . "/util/autoload.php");
+require_once(__DIR__ . "/../config/config.php");
 
 function cli_main($argv) {
    $argc = count($argv);
@@ -58,6 +59,9 @@ function cli_main($argv) {
    } else if ($action == "migrate") {
       require(__DIR__ . "/util/migrate/migrate.php");
       migrate($options);
+   } else if ($action == "deploy") {
+      require(__DIR__ . "/util/deploy.php");
+      deploy();
    } else if ($action == "kachow") {
       echo "kachow!\n";
    } else {
