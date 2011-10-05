@@ -11,6 +11,7 @@ function cli_main($argv) {
    if ($argc < 2) {
       die("Usage: zombie.php <action> <option=value> ...\n" .
            "Availabe actions:\n" .
+           "\tcompile\n" .
            "\tcreate-app\n");
    }
 
@@ -54,8 +55,13 @@ function cli_main($argv) {
    } else if ($action == "compile") {
       require(__DIR__ . "/util/compile/compile.php");
       compile($options);
+   } else if ($action == "migrate") {
+      require(__DIR__ . "/util/migrate/migrate.php");
+      migrate($options);
    } else if ($action == "kachow") {
       echo "kachow!\n";
+   } else {
+      echo "Error: unknown action '" . $action . "'.\n";
    }
 }
 

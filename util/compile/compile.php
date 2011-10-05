@@ -4,21 +4,7 @@
 # See the LICENSE file.
 
 require_once(__DIR__ . '/ssp.php');
-
-function get_dir_contents($dir, $types = array("dir", "file")) {
-   $files = array();
-   if (file_exists($dir) && $dh = opendir($dir)) {
-      while (($file = readdir($dh)) !== false) {
-         if (in_array(filetype($dir . $file), $types) &&
-             $file != "." && $file != "..")
-         {
-            array_push($files, $file);
-         }
-      }
-      closedir($dh);
-   }
-   return $files;
-}
+require_once(__DIR__ . '/../dir.php');
 
 function get_compiled_js($files, $level = 'SIMPLE_OPTIMIZATIONS') {
    $cmd = "java -jar " . __DIR__ . "/closure-compiler/compiler.jar " .
