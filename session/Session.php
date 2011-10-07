@@ -4,6 +4,7 @@
 # See the LICENSE file.
 
 require_once(__DIR__ . "/../../config/config.php");
+require_once(__DIR__ . "/../util/rand.php");
 
 abstract class Session {
    protected $session;
@@ -35,8 +36,7 @@ abstract class Session {
    }
 
    public function generateId() {
-      // make this cryptographically strong
-      return sha1(time() . rand() . rand());
+      return strongRand(30);
    }
 
    abstract public function regenerateId();
