@@ -33,8 +33,9 @@ function renderErrorsJs() {
       $(document).ready(function() {
       var mesg;
       <?php foreach ($errors as $error): ?>
-      mesg = "<?= $error['errstr'] ?> in <?= $error['errfile'] ?>" +
-             " on line <?= $error['errline'] ?>.";
+      mesg = <?= json_encode($error['errstr'] .
+                             " in " . $error['errfile'] .
+                             " on line " . $error['errline'] . ".") ?>;
       zs.ui.error(mesg, <?= $error['errno'] ?>);
       <?php endforeach ?>
       });

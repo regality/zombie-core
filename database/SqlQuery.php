@@ -3,7 +3,10 @@
 # licensed under the General Public License version 3.
 # See the LICENSE file.
 
+define("SQL_DEBUG", true);
+
 require_once(__DIR__ . "/../util/util.php");
+require_once(__DIR__ . "/../util/cipher.php");
 require_once(__DIR__ . "/../util/purify.php");
 require_once(__DIR__ . "/../../config/config.php");
 
@@ -29,6 +32,7 @@ abstract class SqlResult implements Iterator {
    abstract public function numRows();
    abstract public function fetchOne();
    abstract public function fetchItem($itemName);
+   abstract public function setColType($col, $type);
 }
 
 ?>

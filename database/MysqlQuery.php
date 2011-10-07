@@ -12,7 +12,8 @@ class MysqlQuery extends SqlQuery {
    private $magic_quotes_on = false;
    private static $db = null;
 
-   public function __construct($query = '', $params = array(), $connector = 'mysql') {
+   public function __construct($query = '', $params = array(),
+                               $connector = 'mysql') {
       if (MysqlQuery::$db == null) {
          $config = getZombieConfig();
          MysqlQuery::$db = mysql_connect($config[$connector]['host'],
@@ -102,7 +103,7 @@ class MysqlQuery extends SqlQuery {
    }
 
    public function addParam($value, $type = null) {
-      $this->params[$this->param_count] = $this->sanitize($value);
+      $this->params[$this->param_count] = $this->sanitize($value, $type);
       $this->param_count += 1;
    }
 
@@ -116,6 +117,8 @@ class MysqlQuery extends SqlQuery {
          }
          if ($type == "html") {
             $value = purifyHtml($value);
+         } else if ($type == "secure") {
+            $value = encrypt($value);
          } else if ($type != "raw") {
             $value = htmlentities($value);
          }
@@ -161,6 +164,7 @@ class MysqlResult extends SqlResult {
    private $result;
    private $row_data;
    private $position;
+   private $col_types = array();
 
    public function __construct($pResult) {
       $this->result = $pResult;
@@ -173,12 +177,34 @@ class MysqlResult extends SqlResult {
    }
 
    public function fetchOne() {
-      return mysql_fetch_assoc($this->result);
+      $this->rewind();
+      return $this->row_data;
    }
 
    public function fetchItem($itemName) {
       $this->rewind();
       return $this->row_data[$itemName];
+   }
+
+   public function setColType($col, $type) {
+      $valid_types = array('array', 'secure');
+      if (!in_array($type, $valid_types)) {
+         trigger_error('Unkown datatype: ' . $type, E_USER_ERROR);
+      } else {
+         $this->col_types[$col] = $type;
+      }
+   }
+
+   private function fixTypes() {
+      foreach ($this->col_types as $col => $type) {
+         if (isset($this->row_data[$col])) {
+            if ($type == 'array') {
+               $this->row_data[$col] = unserialize($this->row_data[$col]);
+            } else if ($type == 'secure') {
+               $this->row_data[$col] = decrypt($this->row_data[$col]);
+            }
+         }
+      }
    }
 
    /******************************
@@ -195,6 +221,7 @@ class MysqlResult extends SqlResult {
 
    public function next() {
       $this->row_data = mysql_fetch_assoc($this->result);
+      $this->fixTypes();
       $this->position++;
    }
 
@@ -204,6 +231,7 @@ class MysqlResult extends SqlResult {
          mysql_data_seek($this->result, 0);
       }
       $this->row_data = mysql_fetch_assoc($this->result); 
+      $this->fixTypes();
    }
 
    public function valid() {
