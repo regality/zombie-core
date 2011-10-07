@@ -115,7 +115,7 @@ class MysqlQuery extends SqlQuery {
             $value = stripslashes($value);
          }
          if ($type == "html") {
-            $value = Model::purifyHtml($value);
+            $value = purifyHtml($value);
          } else if ($type != "raw") {
             $value = htmlentities($value);
          }

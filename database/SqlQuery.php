@@ -4,6 +4,7 @@
 # See the LICENSE file.
 
 require_once(__DIR__ . "/../util/util.php");
+require_once(__DIR__ . "/../util/purify.php");
 require_once(__DIR__ . "/../../config/config.php");
 
 abstract class SqlException extends Exception { }
