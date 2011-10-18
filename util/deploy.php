@@ -34,7 +34,7 @@ function deploy() {
       symlink($deploy_root . "/zombie-core/zombie.php", $deploy_root . "/zombie.php");
    }
    echo "Migrating database.\n";
-   echo shell_exec("php $deploy_root/zombie.php migrate action=run");
+   echo passthru("php $deploy_root/zombie.php migrate action=run");
    echo "\nDone.\n";
 }
 

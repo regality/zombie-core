@@ -4,6 +4,13 @@
 # See the LICENSE file.
 
 class MysqlException extends Exception { }
+class MysqlDuplicateEntryException extends MysqlException { }
+class MysqlUnknownTableException extends MysqlException { }
+class MysqlUnknownDatabaseException extends MysqlException { }
+class MysqlNoDatabaseSelectedException extends MysqlException { }
+class MysqlKeyNotFoundException extends MysqlException { }
+class MysqlColumnCountException extends MysqlException { }
+class MysqlParseException extends MysqlException { }
 
 class MysqlQuery extends SqlQuery {
    private $query;
@@ -51,9 +58,35 @@ class MysqlQuery extends SqlQuery {
          trigger_error("Query debug:" . $query, E_USER_NOTICE);
       }
       $result = mysql_query($query, MysqlQuery::$db);
-      $error = mysql_error();
-      if (strlen($error) > 0) {
-          throw new MysqlException("Mysql Error: " . $error);
+      $errno = mysql_errno();
+      if ($errno != 0) {
+         $error = "Mysql Error: " . mysql_error();
+         switch ($errno) {
+            case 1062:
+               throw new MysqlDuplicateEntryException($error);
+               break;
+            case 1051:
+            case 1146:
+               throw new MysqlUnknownTableException($error);
+               break;
+            case 1049:
+               throw new MysqlUnknownDatabaseException($error);
+               break;
+            case 1046:
+               throw new MysqlNoDatabaseSelectedException($error);
+               break;
+            case 1032:
+               throw new MysqlKeyNotFoundException($error);
+               break;
+            case 1058:
+               throw new MysqlColumnCountException($error);
+               break;
+            case 1064:
+               throw new MysqlParseException($error);
+               break;
+            default:
+               throw new MysqlException($error);
+         }
       }
       return $result;
    }
@@ -165,6 +198,7 @@ class MysqlResult extends SqlResult {
    private $row_data;
    private $position;
    private $col_types = array();
+   private $callbacks = array();
 
    public function __construct($pResult) {
       $this->result = $pResult;
@@ -186,12 +220,15 @@ class MysqlResult extends SqlResult {
       return $this->row_data[$itemName];
    }
 
-   public function setColType($col, $type) {
-      $valid_types = array('array', 'secure');
+   public function setColType($col, $type, $extra = null) {
+      $valid_types = array('array', 'secure', 'callback');
       if (!in_array($type, $valid_types)) {
          trigger_error('Unkown datatype: ' . $type, E_USER_ERROR);
       } else {
          $this->col_types[$col] = $type;
+         if ($type == 'callback') {
+            $this->callbacks[$col] = $extra;
+         }
       }
    }
 
@@ -202,6 +239,8 @@ class MysqlResult extends SqlResult {
                $this->row_data[$col] = unserialize($this->row_data[$col]);
             } else if ($type == 'secure') {
                $this->row_data[$col] = decrypt($this->row_data[$col]);
+            } else if ($type == 'callback') {
+               $this->row_data[$col] = $this->callbacks[$col]($this->row_data[$col]);
             }
          }
       }

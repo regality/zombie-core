@@ -47,21 +47,21 @@ class PsqlQuery extends SqlQuery {
          trigger_error("Query debug:" . $query, E_USER_NOTICE);
       }
       $result = pg_query_params(PsqlQuery::$db, $query, $params);
-      $error = mysql_error();
+      $error = pg_last_error();
       if (strlen($error) > 0) {
-          throw new MysqlException("Mysql Error: " . $error);
+          throw new PsqlException("Psql Error: " . $error);
       }
       return $result;
    }
 
    public function exec($debug = false) {
-      $this->getPsqlResult($this->query);
+      $this->getPsqlResult($this->query, $this->params, $debug);
       return pg_affected_rows();
    }
 
    public function query($debug = false) {
-      $result = $this->getPsqlResult($this->query, $this->params);
-      return $result;
+      $result = $this->getPsqlResult($this->query, $this->params, $debug);
+      return new PsqlResult($result);
    }
 
    public function addParams($params) {
@@ -88,7 +88,7 @@ class PsqlQuery extends SqlQuery {
          } else if ($type != "raw") {
             $value = htmlentities($value);
          }
-         $value = "'" . mysql_real_escape_string($value) . "'";
+         $value = "'" . pg_escape_string($value) . "'";
       } else if (is_numeric($value)) {
          $value = (string)$value;
       } else if (is_bool($value)) {
@@ -96,42 +96,49 @@ class PsqlQuery extends SqlQuery {
       } else if (is_null($value)) {
          $value = "NULL";
       } else /* array, object, or unknown */ {
-         $value = "'" . mysql_real_escape_string(serialize($value)) . "'";
+         $value = "'" . pg_escape_string(serialize($value)) . "'";
       }
       return $value;
    }
 
    public function begin() {
-      $this->getPsqlResult("BEGIN");
+      $this->getPsqlResult("BEGIN", array(), false);
    }
 
    public function rollback() {
-      $this->getPsqlResult("ROLLBACK");
+      $this->getPsqlResult("ROLLBACK", array(), false);
    }
 
    public function commit() {
-      $this->getPsqlResult("COMMIT");
+      $this->getPsqlResult("COMMIT", array(), false);
    }
 
    public function lastInsertId($table = null) {
-      return mysql_insert_id();
+      $query = "SELECT CURVAL('" . $table . "_seq) id";
+      $result = $this->GetPsqlResult($query);
+      $result = new PsqlResult($result);
+      return $result->fetchItem("id");
    }
 
    public function describe($table) {
-     $query = "DESCRIBE $table";
-     $result = $this->getPsqlResult($query);
-     return $result;
+     $query = "SELECT column_name
+               FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE table_name = $1";
+     $result = $this->getPsqlResult($query, array($table), false);
+     return new PsqlResult($result);
    }
 
 }
 
-class PgsqlResult extends SqlResult {
+class PsqlResult extends SqlResult {
    private $result;
    private $row;
    private $position;
+   private $col_types = array();
+   private $callbacks = array();
 
-   public function __construct($pResult) {
-      $this->result = $pResult;
+   public function __construct($result) {
+      $this->result = $result;
       $this->row = null;
       $this->position = 0;
    }
@@ -141,12 +148,39 @@ class PgsqlResult extends SqlResult {
    }
 
    public function fetchOne() {
-      return pg_fetch_assoc($this->result);
+      $this->rewind();
+      return $this->row;
    }
 
-   public function fetchItem($itemName) {
+   public function fetchItem($item_name) {
       $this->rewind();
-      return $this->row[$itemName];
+      return $this->row[$item_name];
+   }
+
+   public function setColType($col, $type, $extra = null) {
+      $valid_types = array('array', 'secure', 'callback');
+      if (!in_array($type, $valid_types)) {
+         trigger_error('Unkown datatype: ' . $type, E_USER_ERROR);
+      } else {
+         $this->col_types[$col] = $type;
+         if ($type == 'callback') {
+            $this->callbacks[$col] = $extra;
+         }
+      }
+   }
+
+   private function fixTypes() {
+      foreach ($this->col_types as $col => $type) {
+         if (isset($this->row[$col])) {
+            if ($type == 'array') {
+               $this->row[$col] = unserialize($this->row_data[$col]);
+            } else if ($type == 'secure') {
+               $this->row[$col] = decrypt($this->row_data[$col]);
+            } else if ($type == 'callback') {
+               $this->row[$col] = $this->callbacks[$col]($this->row[$col]);
+            }
+         }
+      }
    }
 
    /******************************
@@ -163,6 +197,7 @@ class PgsqlResult extends SqlResult {
 
    public function next() {
       $this->row = pg_fetch_assoc($this->result);
+      $this->fixTypes();
       $this->position++;
    }
 
@@ -172,6 +207,7 @@ class PgsqlResult extends SqlResult {
          pg_result_seek($this->result, 0);
       }
       $this->row = pg_fetch_assoc($this->result); 
+      $this->fixTypes();
    }
 
    public function valid() {
