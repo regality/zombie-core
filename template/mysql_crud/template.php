@@ -138,7 +138,7 @@ class MysqlCrudTemplate extends ZombieTemplate {
                $this->replace['JOIN_FIELD'] = $join_field;
                if (strlen($join_field) > 0) {
                   $this->replace['OTHER_TABLE_NAME'] = $other_table;
-                  $this->replace['SQL_JOINS'] .= "          LEFT JOIN $other_table ON $other_table.id = {$other_table}_id\n";
+                  $this->replace['SQL_JOINS'] .= "         LEFT JOIN $other_table ON $other_table.id = {$other_table}_id\n";
                   $this->replace['SQL_FIELDS_COMMA_SEP'] .= " $other_table.$join_field {$other_table}_{$join_field}\n               ,";
                   $this->replace['HTML_FIELDS_TD'] .= 
                      "      <td><?= \$row['{$other_table}_{$join_field}'] ?></td>\n";
