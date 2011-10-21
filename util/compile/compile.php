@@ -182,46 +182,61 @@ function compile_js($version) {
    }
 }
 
-function compile_css($version) {
-   echo "COMPILING CSS\n";
+function get_css_file_lists() {
+   $config = getZombieConfig();
+   $root = $config['zombie_root'];
    $apps_dir = __DIR__ . "/../../../apps/";
    $apps = get_dir_contents($apps_dir, array('dir'));
-
-   $all_css = '';
-   $all_mobile_css = '';
+   $files = array("main" => array(),
+                  "mobile-main" => array());
    foreach ($apps as $app) {
-      $css_file = __DIR__ . "/../../../apps/" . $app . "/views/css/main.css";
-      $mobile_css_file = __DIR__ . "/../../../apps/" . $app . "/views/css/mobile-main.css";
-      if (file_exists($css_file)) {
-         $css = file_get_contents($css_file);
-         $c = new CssFile($css, $version);
-         $all_css .= $c->render(true);
-         echo "added $css_file to main\n";
+      $main_file = $root . "/apps/" . $app . "/views/css/main.css";
+      $mobile_file = $root . "/apps/" . $app . "/views/css/mobile-main.css";
+      if (file_exists($main_file)) {
+         array_push($files['main'], $main_file);
       }
-      if (file_exists($mobile_css_file)) {
-         $mobile_css .= file_get_contents($mobile_css_file);
-      } else if (file_exists($css_file)) {
-         $mobile_css_file = $css_file;
-         $mobile_css .= file_get_contents($css_file);
-      } else {
-         $mobile_css = false;
-      }
-      if ($mobile_css) {
-         $c = new CssFile($mobile_css, $version);
-         $all_mobile_css .= $c->render(true);
-         echo "added $mobile_css_file to mobile\n";
+      if (file_exists($mobile_file)) {
+         array_push($files['mobile-main'], $mobile_file);
+      } else if (file_exists($main_file)) {
+         array_push($files['mobile-main'], $main_file);
       }
    }
 
-   $write_file = realpath(__DIR__ . "/../../../web/build/" . $version . "/css") .
-                 "/main.css";
-   echo "writing $write_file\n\n";
-   file_put_contents($write_file, $all_css);
+   $xml = simplexml_load_file($root . "/config/stylesheets.xml");
+   foreach ($xml->file as $file) {
+      $name = (string)$file['name'];
+      $files[$name] = array();
+      foreach ($file->source as $source) {
+         $tmp = explode("/", $source['name']);
+         $filename = $root . "/apps/" . $tmp[0] . "/views/css/" . $tmp[1] . ".css";
+         array_push($files[$name], $filename);
+      }
+   }
 
-   $write_file = realpath(__DIR__ . "/../../../web/build/" . $version . "/css") .
-                 "/mobile-main.css";
-   echo "writing $write_file\n\n";
-   file_put_contents($write_file, $all_mobile_css);
+   return $files;
+}
+
+function compile_css_list($list, $minify = false, $version = false) {
+   $compiled_css = '';
+   foreach ($list as $source) {
+      $css = file_get_contents($source);
+      $c = new CssFile($css, $version);
+      $compiled_css .= $c->render($minify);
+   }
+   return $compiled_css;
+}
+
+function compile_css($version) {
+   echo "COMPILING CSS\n";
+   $config = getZombieConfig();
+   $root = $config['zombie_root'];
+   $files = get_css_file_lists();
+   foreach ($files as $file => $list) {
+      $css = compile_css_list($list, true, $version);
+      $out_file = $root . "/web/build/" . $version .  "/css/" . $file . ".css";
+      echo "writing $out_file\n";
+      file_put_contents($out_file, $css);
+   }
 }
 
 function copy_images($version) {

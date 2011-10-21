@@ -51,11 +51,29 @@ class CssSelector {
                $new_attrs['filter'] = 'alpha(opacity=' . intval($value * 100) . ')';
                break;
             case 'text-shadow':
-               $parts = preg_match("/(\d+)px (\d+)px (\d+)px #(.+)/", $value, $matches);
-               $x = $matches[1];
-               $y = $matches[2];
-               $strength = $matches[3];
-               $color = $matches[4];
+               $num_pat = "\s*\d+\.?\d*\s*"; 
+               $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,(:?$num_pat)?\)" .
+                            "|#[a-f0-9]+)?";
+               $pat = "/$color_pat?\s*(\d+)px (\d+)px (\d+)px\s*$color_pat?/";
+               preg_match($pat, $value, $matches);
+               $color = $matches[1];
+               $x = $matches[2];
+               $y = $matches[3];
+               $strength = $matches[4];
+               if (!$color) {
+                  $color = $matches[5];
+               }
+               $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),($num_pat)?\)/";
+               if (preg_match($rgb_pat, $color, $matches) > 0) {
+                  $red = dechex($matches[1]);
+                  $red = (strlen($red) == 1 ? '0'.$red : $red);
+                  $green = dechex($matches[2]);
+                  $green = (strlen($green) == 1 ? '0'.$green : $green);
+                  $blue = dechex($matches[3]);
+                  $blue = (strlen($blue) == 1 ? '0'.$blue : $blue);
+                  $alpha = $matches[4];
+                  $color = '#' . $red . $green . $blue;
+               }
                $angle = intval(atan($x/$y)*360/2/3.14159265358979323 + 90);
                // currently this kills opacity, better fix it
                $new_attrs['filter'] = "\"progid:DXImageTransform.Microsoft.Shadow(direction=$angle,strength=$strength,color=$color)\"";
