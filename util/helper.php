@@ -22,13 +22,16 @@ function img($uri, $attrs = array(), $return = false) {
       if ($mode == 'prod') {
          require_once($config['zombie_root'] . "/config/version.php");
          $version = version();
+         $version = $version['images'];
       }
    }
 
    $html_attrs = attrs_to_string($attrs);
 
-   if ($mode == 'prod' && preg_match("/^\/images\/[a-z0-9_]+\/[a-z_-]+\.[a-z]+/i", $uri)) {
-      $tag = "<img src=\"/build/$version$uri\" $html_attrs />";
+   $pat = "/^\/images\/([a-z0-9_]+\/[a-z_-]+\.[a-z]+)/i";
+   if ($mode == 'prod' && preg_match($pat, $uri, $matches)) {
+      $uri = $matches[1];
+      $tag = "<img src=\"/build/images/$version/$uri\" $html_attrs />";
    } else {
       $tag = "<img src=\"$uri\" $html_attrs />";
    }
