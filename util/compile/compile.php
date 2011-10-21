@@ -21,7 +21,7 @@ function compile_js($version) {
    $xml_config = simplexml_load_file(__DIR__ . "/../../../config/javascript.xml");
    $apps_dir = __DIR__ . "/../../../apps/";
    $apps = get_dir_contents($apps_dir, array('dir'));
-   $base_dir = realpath(__DIR__ . "/../../../web/build/" . $version . "/js");
+   $base_dir = realpath(__DIR__ . "/../../../web/build/js/" . $version);
 
    $compile = array("main" => array(),
                     "modules" => array(),
@@ -111,7 +111,7 @@ function compile_js($version) {
          }
       }
       if ($create_dir || count($compile['modules'][$app]) > 0) {
-         mkdir(__DIR__ . "/../../../web/build/" . $version . "/js/" . $app);
+         mkdir(__DIR__ . "/../../../web/build/js/$version/$app");
       }
    }
 
@@ -126,7 +126,7 @@ function compile_js($version) {
       $dir = realpath(__DIR__ . "/../../../apps/" . $main[0] . "/views/scripts");
       $file = $dir . '/' . $main[1];
       array_push($main_files, $file);
-      $loaded_js .= "zs.util.scripts[\"/build/{$version}/js/{$main[0]}/{$main[1]}\"] = \"loaded\";\n";
+      $loaded_js .= "zs.util.scripts[\"/build/js/{$version}/{$main[0]}/{$main[1]}\"] = \"loaded\";\n";
    }
    echo "\nCOMPILING MAIN JS:\n   ";
    echo implode("\n   ", $main_files) . "\n";
@@ -168,7 +168,7 @@ function compile_js($version) {
          $loaded_js = '';
          foreach ($js_files as $js_file) {
             array_push($read_files, $dir . '/' . $js_file);
-            $loaded_js .= "zs.util.scripts[\"/build/{$version}/js/{$app}/{$js_file}\"] = \"loaded\";\n";
+            $loaded_js .= "zs.util.scripts[\"/build/js/{$version}/{$app}/{$js_file}\"] = \"loaded\";\n";
          }
          echo implode("\n   ", $read_files);
          echo "\n";
@@ -183,44 +183,6 @@ function compile_js($version) {
 }
 
 function get_css_file_lists() {
-<<<<<<< HEAD
-   $apps_dir = __DIR__ . "/../../../apps/";
-   $apps = get_dir_contents($apps_dir, array('dir'));
-
-   $files = array("main" => array(),
-                  "mobile-main" => array());
-   $main = array();
-   $mobile_main = array();
-   foreach ($apps as $app) {
-      $css_file = __DIR__ . "/../../../apps/" . $app . "/views/css/main.css";
-      $mobile_css_file = __DIR__ . "/../../../apps/" . $app . "/views/css/mobile-main.css";
-      if (file_exists($css_file)) {
-         array_push($files['main'], $css_file);
-      }
-      if (file_exists($mobile_css_file)) {
-         array_push($files['mobile-main'], $mobile_css_file);
-      } else if (file_exists($css_file)) {
-         array_push($files['mobile-main'], $css_file);
-      }
-   }
-
-   $xml_config_file = __DIR__ . "/../../../config/stylesheets.xml";
-   if (file_exists($xml_config_file)) {
-      $xml_config = simplexml_load_file(__DIR__ . "/../../../config/stylesheets.xml");
-      foreach ($xml_config->file as $file) {
-         $name = (string)$file['name'];
-         $files[$name] = array();
-         foreach ($file->source as $source) {
-            $tmp = explode("/", $source['name']);
-            $filename = __DIR__ . "/../../../apps/" . $tmp[0] .
-                                  "/views/css/" . $tmp[1] . ".css";
-            if (file_exists($filename)) {
-               array_push($files[$name], $filename);
-            } else {
-               echo "error: file does not exist: $filename\n";
-            }
-         }
-=======
    $config = getZombieConfig();
    $root = $config['zombie_root'];
    $apps_dir = __DIR__ . "/../../../apps/";
@@ -240,41 +202,23 @@ function get_css_file_lists() {
       }
    }
 
-   $xml = simplexml_load_file($root . "/config/stylesheets.xml");
-   foreach ($xml->file as $file) {
-      $name = (string)$file['name'];
-      $files[$name] = array();
-      foreach ($file->source as $source) {
-         $tmp = explode("/", $source['name']);
-         $filename = $root . "/apps/" . $tmp[0] . "/views/css/" . $tmp[1] . ".css";
-         array_push($files[$name], $filename);
->>>>>>> new_branch_name
+   $xml_config_file = "$root/config/stylesheets.xml";
+   if (file_exists($xml_config_file)) {
+      $xml = simplexml_load_file($xml_config_file);
+      foreach ($xml->file as $file) {
+         $name = (string)$file['name'];
+         $files[$name] = array();
+         foreach ($file->source as $source) {
+            $tmp = explode("/", $source['name']);
+            $filename = $root . "/apps/" . $tmp[0] . "/views/css/" . $tmp[1] . ".css";
+            if (file_exists($filename)) {
+               array_push($files[$name], $filename);
+            } else {
+               echo "error: file does not exist: $filename\n";
+            }
+         }
       }
    }
-   return $files;
-}
-
-<<<<<<< HEAD
-function compile_css_list($list, $minify = false, $version = false) {
-   $css_output = '';
-   foreach ($list as $source) {
-      $contents = file_get_contents($source);
-      $c = new CssFile($contents, $version);
-      $css_output .= $c->render($minify);
-   }
-   return $css_output;
-}
-
-function compile_css($version) {
-   echo "COMPILING CSS\n";
-   $files = get_css_file_lists();
-   foreach ($files as $file => $sources) {
-      $css_output = compile_css_list($sources, $version);
-      $write_file = realpath(__DIR__ . "/../../../web/build/" .
-                             $version . "/css") . "/$file.css";
-      echo "writing $write_file\n";
-      file_put_contents($write_file, $css_output);
-=======
    return $files;
 }
 
@@ -295,10 +239,9 @@ function compile_css($version) {
    $files = get_css_file_lists();
    foreach ($files as $file => $list) {
       $css = compile_css_list($list, true, $version);
-      $out_file = $root . "/web/build/" . $version .  "/css/" . $file . ".css";
+      $out_file = $root . "/web/build/css/$version/$file.css";
       echo "writing $out_file\n";
       file_put_contents($out_file, $css);
->>>>>>> new_branch_name
    }
 }
 
@@ -313,7 +256,7 @@ function copy_images($version) {
       }
       $images = get_dir_contents($images_src . "/", array("file"));
       if (count($images) > 0) {
-         $image_dest = realpath(__DIR__ . "/../../../web/build/" . $version . "/images") . "/" . $app;
+         $image_dest = realpath(__DIR__ . "/../../../web/build/images/" . $version) . "/" . $app;
          echo "creating dir " . $image_dest . "\n";
          mkdir($image_dest);
       }
@@ -325,31 +268,67 @@ function copy_images($version) {
    }
 }
 
-function write_version($version) {
-   $php_str = "<?php /* auto-generated */ function version() { return '{$version}'; } ?" . ">\n";
+function write_version($css, $js, $images) {
+   $php_str = "<?php /* auto-generated do not touch */\n" .
+              "function version() {\n" .
+              "   return array('css' => '$css', 'js' => '$js', 'images' => '$images');\n" .
+              "}\n?" . ">\n";
    file_put_contents(__DIR__ . "/../../../config/version.php", $php_str);
 }
 
 function compile($options) {
-   if (include(__DIR__ . "/../../../config/version.php")) {
+   $config = getZombieConfig();
+   $root = $config['zombie_root'];
+   if (@include(__DIR__ . "/../../../config/version.php")) {
       $old_version = version();
-      if (!isset($options['keep_old'])) {
-         exec("rm -rf " . __DIR__ . "/../../../web/build/" . $old_version);
+   } else {
+      $old_version = array('css' => 'css',
+                           'js' => 'js',
+                           'images' => 'images');
+   }
+   $version = uniqid();
+   $compile_css = false;
+   $compile_js = false;
+   $compile_images = false;
+   if (isset($options['css'])) {
+      $compile_css = true;
+   }
+   if (isset($options['js'])) {
+      $compile_js = true;
+   }
+   if (isset($options['images'])) {
+      $compile_images = true;
+   }
+   if (isset($options['all']) ||
+      (!$compile_css && !$compile_js && !$compile_images))
+   {
+      $compile_css = true;
+      $compile_js = true;
+      $compile_images = true;
+   }
+   $css_version = ($compile_css ? $version : $old_version['css']);
+   $js_version = ($compile_js ? $version : $old_version['js']);
+   $images_version = ($compile_images ? $version : $old_version['images']);
+   write_version($css_version, $js_version, $images_version);
+   if ($compile_css) {
+      exec("rm -rf $root/web/build/css/" . $old_version['css']);
+      exec("mkdir -p $root/web/build/css/" . $css_version);
+      compile_css($css_version);
+   }
+   if ($compile_js) {
+      exec("rm -rf $root/web/build/js/" . $old_version['js']);
+      exec("mkdir -p $root/web/build/js/" . $js_version);
+      if (!file_exists(__DIR__ . "/tmp")) {
+         mkdir(__DIR__ . "/tmp");
       }
+      compile_js($js_version);
+      exec("rm -rf " . __DIR__ . "/tmp");
    }
-   $version = substr(md5(microtime()), 0, 10);
-   write_version($version);
-   mkdir(__DIR__ . "/../../../web/build/" . $version);
-   mkdir(__DIR__ . "/../../../web/build/" . $version . "/css");
-   mkdir(__DIR__ . "/../../../web/build/" . $version . "/js");
-   mkdir(__DIR__ . "/../../../web/build/" . $version . "/images");
-   if (!file_exists(__DIR__ . "/tmp")) {
-      mkdir(__DIR__ . "/tmp");
+   if ($compile_css) {
+      exec("rm -rf $root/web/build/images/" . $old_version['images']);
+      exec("mkdir -p $root/web/build/images/" . $images_version);
+      copy_images($images_version);
    }
-   copy_images($version);
-   compile_css($version);
-   compile_js($version);
-   exec("rm -rf " . __DIR__ . "/tmp");
 }
 
 ?>
