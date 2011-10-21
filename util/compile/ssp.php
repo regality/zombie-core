@@ -52,7 +52,7 @@ class CssSelector {
                break;
             case 'text-shadow':
                $num_pat = "\s*\d+\.?\d*\s*"; 
-               $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,(:?$num_pat)?\)" .
+               $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,?(:?$num_pat)?\)" .
                             "|#[a-f0-9]+)?";
                $pat = "/$color_pat?\s*(\d+)px (\d+)px (\d+)px\s*$color_pat?/";
                preg_match($pat, $value, $matches);
@@ -63,7 +63,7 @@ class CssSelector {
                if (!$color) {
                   $color = $matches[5];
                }
-               $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),($num_pat)?\)/";
+               $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),?($num_pat)?\)/";
                if (preg_match($rgb_pat, $color, $matches) > 0) {
                   $red = dechex($matches[1]);
                   $red = (strlen($red) == 1 ? '0'.$red : $red);
