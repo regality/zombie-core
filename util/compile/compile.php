@@ -17,7 +17,7 @@ function get_compiled_js($files, $level = 'SIMPLE_OPTIMIZATIONS') {
    return $compiled_js;
 }
 
-function compile_js($version) {
+function compile_js($version, $css_version) {
    $xml_config = simplexml_load_file(__DIR__ . "/../../../config/javascript.xml");
    $apps_dir = __DIR__ . "/../../../apps/";
    $apps = get_dir_contents($apps_dir, array('dir'));
@@ -120,6 +120,7 @@ function compile_js($version) {
                 "zs.settings = zs.settings || {};\n" .
                 "zs.settings.mode = \"prod\";\n" .
                 "zs.settings.version = \"$version\";\n" .
+                "zs.settings.cssVersion = \"$css_version\";\n" .
                 "zs.util = zs.util || {};\n" .
                 "zs.util.scripts = zs.util.scripts || {};\n";
    foreach ($compile['main'] as $main) {
@@ -314,6 +315,14 @@ function compile($options) {
       exec("rm -rf $root/web/build/css/" . $old_version['css']);
       exec("mkdir -p $root/web/build/css/" . $css_version);
       compile_css($css_version);
+      if (!$compile_js) {
+         $main_js_file = $root . "/web/build/js/" . $js_version . "/main.js";
+         $main_js = file_get_contents($main_js_file);
+         $main_js = preg_replace("/zs\.settings\.cssVersion\s*=\s*\"[0-9a-f]+\"/",
+                                 "zs.settings.cssVersion=\"$css_version\"",
+                                 $main_js);
+         file_put_contents($main_js_file, $main_js);
+      }
    }
    if ($compile_js) {
       exec("rm -rf $root/web/build/js/" . $old_version['js']);
@@ -321,10 +330,10 @@ function compile($options) {
       if (!file_exists(__DIR__ . "/tmp")) {
          mkdir(__DIR__ . "/tmp");
       }
-      compile_js($js_version);
+      compile_js($js_version, $css_version);
       exec("rm -rf " . __DIR__ . "/tmp");
    }
-   if ($compile_css) {
+   if ($compile_images) {
       exec("rm -rf $root/web/build/images/" . $old_version['images']);
       exec("mkdir -p $root/web/build/images/" . $images_version);
       copy_images($images_version);
