@@ -13,6 +13,14 @@ function attrs_to_string($attrs) {
    return $html_attrs;
 }
 
+function img_uri($uri, $mode, $version) {
+   $pat = "/^\/images\/([a-z0-9_]+\/[a-z_-]+\.[a-z]+)/i";
+   if ($mode == 'prod' && preg_match($pat, $uri, $matches)) {
+      $uri = '/build/images/' . $version . '/' . $matches[1];
+   }
+   return $uri;
+}
+
 function img($uri, $attrs = array(), $return = false) {
    static $mode = false;
    static $version = false;
@@ -28,13 +36,8 @@ function img($uri, $attrs = array(), $return = false) {
 
    $html_attrs = attrs_to_string($attrs);
 
-   $pat = "/^\/images\/([a-z0-9_]+\/[a-z_-]+\.[a-z]+)/i";
-   if ($mode == 'prod' && preg_match($pat, $uri, $matches)) {
-      $uri = $matches[1];
-      $tag = "<img src=\"/build/images/$version/$uri\" $html_attrs />";
-   } else {
-      $tag = "<img src=\"$uri\" $html_attrs />";
-   }
+   $uri = img_uri($uri, $mode, $version);
+   $tag = "<img src=\"$uri\" $html_attrs />";
    if ($return) {
       return $tag;
    } else {

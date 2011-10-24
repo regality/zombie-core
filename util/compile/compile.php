@@ -223,23 +223,23 @@ function get_css_file_lists() {
    return $files;
 }
 
-function compile_css_list($list, $minify = false, $version = false) {
+function compile_css_list($list, $minify = false, $version = false, $images_version = false) {
    $compiled_css = '';
    foreach ($list as $source) {
       $css = file_get_contents($source);
-      $c = new CssFile($css, $version);
+      $c = new CssFile($css, $version, $images_version);
       $compiled_css .= $c->render($minify);
    }
    return $compiled_css;
 }
 
-function compile_css($version) {
+function compile_css($version, $images_version) {
    echo "COMPILING CSS\n";
    $config = getZombieConfig();
    $root = $config['zombie_root'];
    $files = get_css_file_lists();
    foreach ($files as $file => $list) {
-      $css = compile_css_list($list, true, $version);
+      $css = compile_css_list($list, true, $version, $images_version);
       $out_file = $root . "/web/build/css/$version/$file.css";
       echo "writing $out_file\n";
       file_put_contents($out_file, $css);
@@ -250,6 +250,23 @@ function copy_images($version) {
    echo "COPYING IMAGES\n\n";
    $apps_dir = __DIR__ . "/../../../apps/";
    $apps = get_dir_contents($apps_dir, array('dir'));
+
+   $xml_file = __DIR__ . "/../../../config/images.xml";
+   $xml = simplexml_load_file($xml_file);
+
+   $resize = array();
+   foreach ($xml->app as $app) {
+      $app_name = (string)$app['name'];
+      foreach ($app->file as $file) {
+         $name = (string)$file['name'];
+         $size = (string)$file['resize'];
+         array_push($resize, array('app' => $app_name,
+                                   'name' => $name,
+                                   'size' => $size));
+      }
+   }
+
+
    foreach ($apps as $app) {
       $images_src = realpath($apps_dir . $app . "/views/images");
       if (!$images_src) {
@@ -262,9 +279,34 @@ function copy_images($version) {
          mkdir($image_dest);
       }
       foreach ($images as $image) {
+         $path_parts = pathinfo($images_src . "/" . $image);
+         $ext = $path_parts['extension'];
+         $img_source = $images_src . "/" . $image;
+         $img_dest = $image_dest . "/" . $image;
+         if (`which convert`) {
+            foreach ($resize as $resize_info) {
+               if ($app == $resize_info['app'] &&
+                   $resize_info['name'] == $image)
+               {
+                  $size = $resize_info['size'];
+                  echo "resizing $img_source\n";
+                  exec("convert -resize $size $img_source $img_dest");
+                  $img_source = $img_dest;
+               }
+            }
+         }
+         if ($ext == 'png' && `which pngcrush`) {
+            echo "optimizing png\n";
+            exec("pngcrush -rem alla -rem gAMA -rem cHRM -rem iCCP -rem sRGB -brute -reduce $img_source $img_dest");
+         } else if ($ext == 'jpg' || $ext == 'jpeg') {
+            echo "optimizing jpeg\n";
+            exec("jpegtran -copy none -optimize -outfile $img_dest $img_source");
+         } else {
+            copy($img_source, $img_dest);
+         }
          echo "copying $images_src/$image\n" .
               "to $image_dest/$image\n\n";
-         copy($images_src . '/' . $image, $image_dest . '/' . $image);
+
       }
    }
 }
@@ -299,6 +341,7 @@ function compile($options) {
    }
    if (isset($options['images'])) {
       $compile_images = true;
+      $compile_css = true;
    }
    if (isset($options['all']) ||
       (!$compile_css && !$compile_js && !$compile_images))
@@ -314,7 +357,7 @@ function compile($options) {
    if ($compile_css) {
       exec("rm -rf $root/web/build/css/" . $old_version['css']);
       exec("mkdir -p $root/web/build/css/" . $css_version);
-      compile_css($css_version);
+      compile_css($css_version, $images_version);
       if (!$compile_js) {
          $main_js_file = $root . "/web/build/js/" . $js_version . "/main.js";
          $main_js = file_get_contents($main_js_file);
