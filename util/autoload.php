@@ -26,12 +26,6 @@ function autoloadSession($class) {
    }
 }
 
-function autoloadQuery($class) {
-   if (substr($class, -5) == 'Query') {
-      include($GLOBALS['zombie_root'] . '/zombie-core/database/' . $class . '.php');
-   }
-}
-
 function autoloadModelBase($class) {
    if (substr($class, -9) == 'ModelBase') {
       include($GLOBALS['zombie_root'] . '/zombie-core/model/' . $class . '.php');
@@ -44,8 +38,9 @@ function autoloadController($class) {
    }
 }
 
+include(__DIR__ . "/../database/sql/autoload.php");
+include(__DIR__ . "/../database/mysql/autoload.php");
 spl_autoload_register('autoloadModel');
-spl_autoload_register('autoloadQuery');
 spl_autoload_register('autoloadSession');
 spl_autoload_register('autoloadModelBase');
 spl_autoload_register('autoloadController');
