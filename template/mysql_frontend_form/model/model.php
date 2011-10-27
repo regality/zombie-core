@@ -1,57 +1,49 @@
 <?php
 
 class <MODEL_CLASS_NAME> extends ModelBase {
+   public function getSelect() {
+      $select = new MysqlSelect();
+      $select->select('<SQL_FIELDS_COMMA_SEP>')
+             ->from('<TABLE_NAME>')<MYSQL_JOINS>;
+      return $select;
+   }
+
    public function getAll() {
-      $query = new MysqlQuery(
-         'SELECT<SQL_FIELDS_COMMA_SEP>
-          FROM <TABLE_NAME>
-<SQL_JOINS>
-          ORDER BY <TABLE_NAME>.id'
-      );
-      return $query->query();
+      $select = $this->getSelect();
+      $select->orderBy('<TABLE_NAME>.id');
+      return $select->query();
    }
 
    public function getOne($id) {
-      $query = new MysqlQuery(
-         'SELECT<SQL_FIELDS_COMMA_SEP>
-          FROM <TABLE_NAME>
-<SQL_JOINS>
-          WHERE <TABLE_NAME>.id = $1'
-      );
-      $query->addParam($id);
-      return $query->query()->fetchOne();
+      $select = $this->getSelect();
+      $select->where('<TABLE_NAME>.id = $1')
+             ->addParam($id);
+      return $select->query()->fetchOne();
    }
 
    public function delete($id) {
-      $query = new MysqlQuery(
-         'DELETE FROM <TABLE_NAME>
-          WHERE id = $1'
-      );
-      $query->addParam($id);
-      return $query->exec();
+      $delete = new MysqlDelete();
+      $delete->deleteFrom('<TABLE_NAME>')
+             ->where('id = $1');
+      return $delete->exec();
    }
 
    public function insert(<INSERT_FUNC_PARAMS_MODEL>) {
-      $query = new MysqlQuery(
-         'INSERT INTO <TABLE_NAME>
-          (<INSERT_FIELDS_COMMA_SEP>)
-          VALUES
-          (DEFAULT, <INSERT_DOLLAR_PARAMS>)'
-      );
-<QUERY_INSERT_ADD_PARAMS>
-      return $query->exec();
+      $insert = new MysqlInsert();
+      $insert->insertInto('<TABLE_NAME>')
+             ->columns('<INSERT_FIELDS_COMMA_SEP>')
+             ->values('DEFAULT, <INSERT_DOLLAR_PARAMS>')<MYSQL_ADD_PARAMS>;
+      return $insert->exec();
    }
 
    public function update($id,
                           <INSERT_FUNC_PARAMS_MODEL>) {
-      $query = new MysqlQuery(
-         'UPDATE <TABLE_NAME>
-          SET<SET_FIELDS_COMMA_SEP>
-          WHERE id = $1'
-      );
-      $query->addParam($id);
-<QUERY_INSERT_ADD_PARAMS>
-      return $query->exec();
+      $update = new MysqlUpdate();
+      $update->update('<TABLE_NAME')
+             ->set('<SET_FIELDS_COMMA_SEP>')
+             ->where('id = $1')
+             ->addParam($id)<MYSQL_ADD_PARAMS>;
+      return $update->exec();
    }
 
 }

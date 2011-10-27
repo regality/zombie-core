@@ -90,11 +90,13 @@ class MysqlQuery extends SqlQuery {
       foreach ($params as $param) {
          $this->addParam($param);
       }
+      return $this;
    }
 
    public function addParam($value, $type = null) {
       $this->params[$this->param_count] = $this->sanitize($value, $type);
       $this->param_count += 1;
+      return $this;
    }
 
    public function sanitize($value, $type = null) {

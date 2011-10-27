@@ -35,6 +35,8 @@ class MysqlCrudTemplate extends ZombieTemplate {
       $this->replace['INSERT_REQUEST_PARAMS'] = '';
       $this->replace['JOIN_FIELD'] = '';
       $this->replace['MODEL_GET_ALL'] = '';
+      $this->replace['MYSQL_JOINS'] = '';
+      $this->replace['MYSQL_ADD_PARAMS'] = '';
       $this->replace['QUERY_INSERT_ADD_PARAMS'] = '';
       $this->replace['REQUIRED_CLASS'] = '';
       $this->replace['SET_FIELDS_COMMA_SEP'] = '';
@@ -90,12 +92,12 @@ class MysqlCrudTemplate extends ZombieTemplate {
             $this->replace['VALIDATE'] = "";
          }
 
-         $this->replace['INSERT_FIELDS_COMMA_SEP'] .= " " . $sql_field['Field'] . "\n          ,";
+         $this->replace['INSERT_FIELDS_COMMA_SEP'] .= $sql_field['Field'] . "\n                      , ";
 
          $this->replace['UPDATE_REQUEST_PARAMS'] .= "\$request['$field_name'],\n                      ";
 
          $this->replace['SQL_FIELDS_COMMA_SEP'] .= 
-            " " . $this->options['table'] . "." . $sql_field['Field'] . "\n               ,";
+                  $this->options['table'] . "." . $sql_field['Field'] . "\n                     , ";
 
          $this->replace['AJAX_COMMA_SEP_FIELDS_WID'] .= '                      "'. $field_name . '":form.find("'. $html_type .'[name='. $field_name . "]\").val(),\n";
 
@@ -113,10 +115,18 @@ class MysqlCrudTemplate extends ZombieTemplate {
                '$request[\'' . $field_name . "'],\n" . str_repeat(" ", 32 + strlen($this->replace['TABLE_NAME']));
             $this->replace['INSERT_FUNC_PARAMS_MODEL'] .=
                '$' . $field_name . ",\n                          ";
+
+            $this->replace['MYSQL_ADD_PARAMS'] .=
+               "\n             ->addParam($" . $field_name . ")";
+
             $this->replace['QUERY_INSERT_ADD_PARAMS'] .=
                '      $query->addParam($' . $field_name . ');' . "\n";
+
+            $this->replace['QUERY_INSERT_ADD_PARAMS'] .=
+               '      $query->addParam($' . $field_name . ');' . "\n";
+
             $this->replace['SET_FIELDS_COMMA_SEP'] .= 
-               " " . $sql_field['Field'] . " = \$$i \n            ,";
+                     $sql_field['Field'] . " = \$$i \n                  , ";
 
             $this->replace['INSERT_REQUEST_PARAMS'] .=
                "\$request['$field_name'],\n                      ";
@@ -138,8 +148,11 @@ class MysqlCrudTemplate extends ZombieTemplate {
                $this->replace['JOIN_FIELD'] = $join_field;
                if (strlen($join_field) > 0) {
                   $this->replace['OTHER_TABLE_NAME'] = $other_table;
+
+                  $this->replace['MYSQL_JOINS'] .= "\n             ->leftJoin('$other_table ON $other_table.id = {$other_table}_id')";
                   $this->replace['SQL_JOINS'] .= "         LEFT JOIN $other_table ON $other_table.id = {$other_table}_id\n";
-                  $this->replace['SQL_FIELDS_COMMA_SEP'] .= " $other_table.$join_field {$other_table}_{$join_field}\n               ,";
+
+                  $this->replace['SQL_FIELDS_COMMA_SEP'] .= "$other_table.$join_field {$other_table}_{$join_field}\n                     , ";
                   $this->replace['HTML_FIELDS_TD'] .= 
                      "      <td><?= \$row['{$other_table}_{$join_field}'] ?></td>\n";
                   $field_name_nice = ucwords(str_replace("_", " ", $other_table . " " . $join_field));
@@ -168,6 +181,8 @@ class MysqlCrudTemplate extends ZombieTemplate {
       $this->replace['AJAX_COMMA_SEP_FIELDS'] = rtrim($this->replace['AJAX_COMMA_SEP_FIELDS'], "\n");
       $this->replace['AJAX_COMMA_SEP_FIELDS_WID'] = rtrim($this->replace['AJAX_COMMA_SEP_FIELDS_WID'], "\n");
       $this->replace['HTML_EDIT_FIELDS'] = rtrim($this->replace['HTML_EDIT_FIELDS'], "\n");
+      $this->replace['MYSQL_JOINS'] = rtrim($this->replace['MYSQL_JOINS'], " \n");
+      $this->replace['MYSQL_ADD_PARAMS'] = rtrim($this->replace['MYSQL_ADD_PARAMS'], " \n");
       $this->replace['SQL_JOINS'] = rtrim($this->replace['SQL_JOINS'], "\n");
       $this->replace['HTML_FIELDS_TH'] = rtrim($this->replace['HTML_FIELDS_TH'], "\n");
       $this->replace['HTML_FIELDS_TD'] = rtrim($this->replace['HTML_FIELDS_TD'], "\n");
