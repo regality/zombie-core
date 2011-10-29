@@ -1,5 +1,17 @@
 <?php
+# Copyright (c) 2011, Regaltic LLC.  This file is
+# licensed under the General Public License version 3.
+# See the LICENSE file.
+/**
+ * @package Util
+ */
 
+/**
+ * Purify an html string to protect
+ * against XSS attacks.
+ * @param string $html the html string
+ * @return string
+ */
 function purifyHtml($html) {
    static $purifier = false;
    if ($purifier === false) {

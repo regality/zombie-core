@@ -2,16 +2,31 @@
 # Copyright (c) 2011, Regaltic LLC.  This file is
 # licensed under the General Public License version 3.
 # See the LICENSE file.
+/**
+ * @package Session
+ */
 
 require("session.php");
 
 class MemcacheSession extends Session {
-   public static $instance;
-
+   /**
+    * @ignore
+    */
    public $session;
+
+   /**
+    * @ignore
+    */
    public $session_id;
+
+   /**
+    * @ignore
+    */
    public $mem;
 
+   /**
+    * @ignore
+    */
    public function __construct() {
       $this->session = false;
       $this->mem = memcache_connect('localhost', 11211);
@@ -29,23 +44,25 @@ class MemcacheSession extends Session {
       }
    }
 
+   /**
+    * @ignore
+    */
    public function __destruct() {
       if (!isset($this->deleted)) {
          $this->save();
       }
    }
 
-   public static function get_session() {
-      if (!isset(MemcacheSession::$instance)) {
-         MemcacheSession::$instance = new MemcacheSession();
-      }
-      return MemcacheSession::$instance;
-   }
-
-   public function get_array() {
+   /**
+    * Get the session array
+    */
+   public function getArray() {
       return $this->session;
    }
 
+   /**
+    * Save the session
+    */
    public function save() {
       $session = serialize($this->session);
       //memcache_set($this->mem, 'foo', 'bar', 0, 1800);
@@ -56,6 +73,9 @@ class MemcacheSession extends Session {
                    1800);
    }
 
+   /**
+    * Create a new session
+    */
    public function create() {
       $this->session_id = sha1(time() + rand(1,10000000));
       setcookie('sessid',
@@ -68,14 +88,23 @@ class MemcacheSession extends Session {
       $this->session = array();
    }
 
-   public function is_set($key) {
+   /**
+    * Check if a session variable is set
+    */
+   public function exists($key) {
       return isset($this->session[$key]);
    }
 
+   /**
+    * Get a session variable
+    */
    public function get($key) {
       return $this->session[$key];
    }
 
+   /**
+    * Set a session variable
+    */
    public function set($a, $b = null) {
       if (is_array($a)) {
          $this->session = array_merge($this->session, $a);
@@ -84,7 +113,10 @@ class MemcacheSession extends Session {
       }
    }
 
-   public function clear() {
+   /**
+    * Destroy a session
+    */
+   public function destroy() {
       memcache_delete($this->mem, 'sess_' . $this->session_id);
       $this->deleted = true;
       setcookie('sessid','',time() - 1);

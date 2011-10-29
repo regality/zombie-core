@@ -2,6 +2,10 @@
 # Copyright (c) 2011, Regaltic LLC.  This file is
 # licensed under the General Public License version 3.
 # See the LICENSE file.
+/**
+ * @package Util
+ * @ignore
+ */
 
 require_once('util.php');
 require_once(__DIR__ . '/../../config/config.php');

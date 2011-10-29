@@ -2,6 +2,9 @@
 # Copyright (c) 2011, Regaltic LLC.  This file is
 # licensed under the General Public License version 3.
 # See the LICENSE file.
+/**
+ * @package Controllers
+ */
 
 require_once(__DIR__ . "/../util/error.php");
 require_once(__DIR__ . "/../util/util.php");
@@ -9,11 +12,50 @@ require_once(__DIR__ . "/../util/mobile.php");
 require_once(__DIR__ . "/../util/helper.php");
 require_once(__DIR__ . "/../../config/config.php");
 
+/**
+ * This is the base class for application controllers.
+ */
 abstract class Controller {
+   /**
+    * Stores the session.
+    */
    protected $session;
+
+   /**
+    * This will be set to true if the
+    * request came from a mobile browser.
+    * @var boolean
+    */
+   protected $is_mobile;
+
+   /**
+    * Status of save method.
+    * @var string
+    */
    protected $save_status;
+
+   /**
+    * If the format is set to json,
+    * all json data should be stored
+    * in this variable.
+    * @var array
+    */
    protected $json;
+
+   /**
+    * If the format allows template rendering,
+    * such as html, all data for the template
+    * should be stored in this variable.
+    * @var array
+    */
    protected $data;
+
+   /**
+    * This is used to make sure we only check
+    * for mobile browsers once per request.
+    * @var boolean
+    * @ignore
+    */
    static protected $mobile_set = false;
 
    public function __construct() {
@@ -27,7 +69,12 @@ abstract class Controller {
       $this->mobileInit();
    }
 
-   public function mobileInit() {
+   /**
+    * Check if we are coming from a mobile browser and set
+    * the $mobile_set variable for use by controllers.
+    * @access private
+    */
+   function mobileInit() {
       if (!Controller::$mobile_set && isset($_GET['mobile'])) {
          $this->is_mobile = (boolean)$_GET['mobile'];
          $mobile_device = isMobile($_SERVER['HTTP_USER_AGENT']);
@@ -51,9 +98,20 @@ abstract class Controller {
       }
    }
 
+   /**
+    * This function will be called prior to executing
+    * the run method for a request. It can be overridden
+    * by application controllers.
+    */
    public function init() {
    }
 
+   /**
+    * The run method should be used to execute
+    * a controller and have it render.
+    * @param string $action action to be run
+    * @param array $request request variables
+    */
    public function run($action = null, $request = null) {
       if ($this->is_secure) {
          $this->runSecure($action, $request);
@@ -64,7 +122,14 @@ abstract class Controller {
       }
    }
 
-   public function runSecure($action = null, $request = null) {
+   /**
+    * If the constructor is marked as secure,
+    * the run method will defer to runSecure.
+    * This method will only execute and render
+    * if the user is properly authenticated.
+    * @access private
+    */
+   function runSecure($action = null, $request = null) {
       $this->prepare($action, $request);
       if (!isset($this->secure_methods) || in_array($this->action, $this->secure_methods)) {
          $access = $this->hasAccess();
@@ -83,7 +148,12 @@ abstract class Controller {
       }
    }
 
-   public function hasAccess() {
+   /**
+    * Check if a user is authenticated and
+    * belongs to a group if necessary.
+    * @access private
+    */
+   function hasAccess() {
       if (!$this->session->exists('username')) {
          return "logged out";
       }
@@ -105,7 +175,11 @@ abstract class Controller {
       }
    }
 
-   public function prepare($action, $request) {
+   /**
+    * Prepare some basic variables for the request.
+    * @access private
+    */
+   function prepare($action, $request) {
       $this->data = array();
       if (is_null($action) && !empty($_REQUEST['action'])) {
          $this->action = $_REQUEST['action'];
@@ -124,7 +198,12 @@ abstract class Controller {
       $this->format = (isset($this->request['format']) ? $this->request['format'] : 'html');
    }
 
-   public function execute() {
+   /**
+    * Find the appropriate method, execute it,
+    * and render the corresponding template.
+    * @access private
+    */
+   function execute() {
       try {
          $run_func = underscoreToMethod($this->action) . "Run";
          $this->saveSafe($this->action, $this->request);
@@ -144,7 +223,13 @@ abstract class Controller {
       $this->render();
    }
 
-   public function render() {
+   /**
+    * Renders a template to the browser.
+    * If the format is set to json it will
+    * json encode the $json variable instead.
+    * @access private
+    */
+   function render() {
       if ($this->format == 'json') {
          $errors = getErrorArray();
          if (!empty($errors)) {
@@ -187,7 +272,12 @@ abstract class Controller {
       }
    }
 
-   public function handleException($e) {
+   /**
+    * Rather than let an exception eat the entire stack,
+    * catch it and report it in a pretty format.
+    * @access private
+    */
+   function handleException($e) {
       if ($this->config['env'] == 'dev') {
          $this->error((string)$e);
       } else {
@@ -195,7 +285,13 @@ abstract class Controller {
       }
    }
 
-   public function renderJsMesg() {
+   /**
+    * Turn the errors, warnings, and messages into
+    * pretty javascript messages to be handled by
+    * the frontend.
+    * @access private
+    */
+   function renderJsMesg() {
       if (!empty($this->errors) ||
           !empty($this->warnings) ||
           !empty($this->messages)) {
@@ -222,11 +318,21 @@ abstract class Controller {
       }
    }
 
-   public function renderJson() {
+   /**
+    * json encode the $json variable and
+    * send it to the browser.
+    * @access private
+    */
+   function renderJson() {
       echo json_encode($this->json);
    }
 
-   public function inGroup($group_name) {
+   /**
+    * Check if the current user belongs to a group.
+    * @param string $group_name the name of the group
+    * @access private
+    */
+   function inGroup($group_name) {
       $groups = $this->session->get('groups');
       if (is_array($groups) && in_array($group_name, $groups)) {
          return true;
@@ -235,7 +341,14 @@ abstract class Controller {
       }
    }
 
-   public function saveSafe($action, $request) {
+   /**
+    * Check for signs of a CSRF attack and only
+    * run the save function if the coast is clear.
+    * @param string $action save method to be run
+    * @param array $request request variables
+    * @access private
+    */
+   function saveSafe($action, $request) {
       $save_func = underscoreToMethod($action) . "Save";
       if (!method_exists($this, $save_func)) {
          return;
@@ -262,10 +375,15 @@ abstract class Controller {
          return;
       }
       $this->save_status = "success";
-         $this->$save_func($request);
+      $this->$save_func($request);
    }
 
-   public function getCsrfToken() {
+   /**
+    * Returns the current csrf token or
+    * generates a new one if none exists.
+    * @access private
+    */
+   function getCsrfToken() {
       $token = $this->session->get('csrf_token');
       if (!$token) {
          $token = md5(rand() . time());
@@ -274,25 +392,40 @@ abstract class Controller {
       return $token;
    }
 
-   public function error($mesg) {
+   /**
+    * Use this function to send an error message to the frontend.
+    * It will arrive if the format is json or html.
+    * @param string $message the error message
+    */
+   public function error($message) {
       if (empty($this->errors)) {
          $this->errors = array();
       }
-      array_push($this->errors, $mesg);
+      array_push($this->errors, $message);
    }
 
-   public function warn($mesg) {
+   /**
+    * Use this function to send a warning to the frontend.
+    * It will arrive if the format is json or html.
+    * @param string $message the error message
+    */
+   public function warn($message) {
       if (empty($this->warnings)) {
          $this->warnings = array();
       }
-      array_push($this->warnings, $mesg);
+      array_push($this->warnings, $message);
    }
 
-   public function message($mesg) {
+   /**
+    * Use this function to send a message to the frontend.
+    * It will arrive if the format is json or html.
+    * @param string $message the error message
+    */
+   public function message($message) {
       if (empty($this->messages)) {
          $this->messages = array();
       }
-      array_push($this->messages, $mesg);
+      array_push($this->messages, $message);
    }
 
 }

@@ -2,11 +2,24 @@
 # Copyright (c) 2011, Regaltic LLC.  This file is
 # licensed under the General Public License version 3.
 # See the LICENSE file.
+/**
+ * @package Session
+ */
 
 class DatabaseSession extends Session {
+   /**
+    * @ignore
+    */
    private $session_model;
+
+   /**
+    * @ignore
+    */
    private $state;
 
+   /**
+    * @ignore
+    */
    protected function __construct() {
       parent::__construct();
       $this->session_model = new SessionModel();
@@ -27,14 +40,23 @@ class DatabaseSession extends Session {
       }
    }
 
+   /**
+    * @ignore
+    */
    public function __destruct() {
       $this->save();
    }
 
+   /**
+    * Get the session array
+    */
    public function getArray() {
       return $this->session;
    }
 
+   /**
+    * Save the session
+    */
    public function save() {
       if ($this->state == 'new') {
          $this->session_model->insert($this->session_id, $this->session);
@@ -44,6 +66,9 @@ class DatabaseSession extends Session {
       $this->state = 'saved';
    }
 
+   /**
+    * Create a new session
+    */
    public function create() {
       $this->session_id = $this->generateId();
       $this->setCookie();
@@ -51,6 +76,9 @@ class DatabaseSession extends Session {
       $this->session = array();
    }
 
+   /**
+    * @ignore
+    */
    public function setCookie() {
       setcookie(session_name(),
                 $this->session_id,
@@ -61,6 +89,9 @@ class DatabaseSession extends Session {
                 true);
    }
 
+   /**
+    * Generate a new session id
+    */
    public function regenerateId() {
       $old_id = $this->session_id;
       $this->session_id = $this->generateId();
@@ -68,6 +99,9 @@ class DatabaseSession extends Session {
       $this->setCookie();
    }
 
+   /**
+    * Set a session variable
+    */
    public function set($a, $b = null) {
       if (is_array($a)) {
          $this->session = array_merge($this->session, $a);
@@ -76,6 +110,9 @@ class DatabaseSession extends Session {
       }
    }
 
+   /**
+    * Get a session variable
+    */
    public function get($key) {
       if (isset($this->session[$key])) {
          return $this->session[$key];
@@ -84,10 +121,16 @@ class DatabaseSession extends Session {
       }
    }
 
+   /**
+    * Check if a session variable is set
+    */
    public function exists($key) {
       return isset($this->session[$key]);
    }
 
+   /**
+    * Destroy a session
+    */
    public function destroy() {
       setcookie(session_name(),'',time() - 1);
       $this->session = array();
