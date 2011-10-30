@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package Database
+ * @subpackage mysql
+ * @ignore
+ */
 
 include('autoload.php');
 include('../sql/autoload.php');

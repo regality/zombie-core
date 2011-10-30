@@ -2,8 +2,16 @@
 # Copyright (c) 2011, Regaltic LLC.  This file is
 # licensed under the General Public License version 3.
 # See the LICENSE file.
+/**
+ * @package Util
+ */
 
-function get_dir_contents($dir, $types = array("dir", "file")) {
+/**
+ * get the contents of a directory
+ * @param string $dir directory to search
+ * @param array $types the types of contents to return
+ */
+function getDirContents($dir, $types = array("dir", "file")) {
    $files = array();
    if (file_exists($dir) && $dh = opendir($dir)) {
       while (($file = readdir($dh)) !== false) {

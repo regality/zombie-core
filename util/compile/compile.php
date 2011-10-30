@@ -20,7 +20,7 @@ function get_compiled_js($files, $level = 'SIMPLE_OPTIMIZATIONS') {
 function compile_js($version, $css_version) {
    $xml_config = simplexml_load_file(__DIR__ . "/../../../config/javascript.xml");
    $apps_dir = __DIR__ . "/../../../apps/";
-   $apps = get_dir_contents($apps_dir, array('dir'));
+   $apps = getDirContents($apps_dir, array('dir'));
    $base_dir = realpath(__DIR__ . "/../../../web/build/js/" . $version);
 
    $compile = array("main" => array(),
@@ -30,7 +30,7 @@ function compile_js($version, $css_version) {
 
    foreach ($apps as $app) {
       $js_dir = __DIR__ . "/../../../apps/" . $app . "/views/scripts/";
-      $js_files = get_dir_contents($js_dir, array("file"));
+      $js_files = getDirContents($js_dir, array("file"));
       $module_files = array();
       if (!$js_files) {
          $js_files = array();
@@ -187,7 +187,7 @@ function get_css_file_lists() {
    $config = getZombieConfig();
    $root = $config['zombie_root'];
    $apps_dir = __DIR__ . "/../../../apps/";
-   $apps = get_dir_contents($apps_dir, array('dir'));
+   $apps = getDirContents($apps_dir, array('dir'));
    $files = array("main" => array(),
                   "mobile-main" => array());
    foreach ($apps as $app) {
@@ -249,7 +249,7 @@ function compile_css($version, $images_version) {
 function copy_images($version) {
    echo "COPYING IMAGES\n\n";
    $apps_dir = __DIR__ . "/../../../apps/";
-   $apps = get_dir_contents($apps_dir, array('dir'));
+   $apps = getDirContents($apps_dir, array('dir'));
 
    $xml_file = __DIR__ . "/../../../config/images.xml";
    $xml = simplexml_load_file($xml_file);
@@ -272,7 +272,7 @@ function copy_images($version) {
       if (!$images_src) {
          continue;
       }
-      $images = get_dir_contents($images_src . "/", array("file"));
+      $images = getDirContents($images_src . "/", array("file"));
       if (count($images) > 0) {
          $image_dest = realpath(__DIR__ . "/../../../web/build/images/" . $version) . "/" . $app;
          echo "creating dir " . $image_dest . "\n";

@@ -187,7 +187,7 @@ class CssFile {
 
    function substitute_includes() {
       $matches = array();
-      while (preg_match_all('/@include ([a-z0-9_\-\/]+).css;(\s+)?/', $this->css, $matches) > 0) {
+      while (preg_match_all('/@include ([a-z0-9_\-\/\.]+).css;(\s+)?/', $this->css, $matches) > 0) {
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $sp = explode('/', $matches[1][$i], 2);
             $include_file_name = __DIR__ . "/../../../apps/" . $sp[0] . "/views/css/" . $sp[1] . ".css";

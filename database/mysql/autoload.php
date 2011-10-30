@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package Database
+ * @subpackage mysql
+ * @ignore
+ */
 
 function autoloadMysqlClass($class) {
    $classes = array('MysqlDelete', 'MysqlException', 'MysqlInsert',

@@ -7,7 +7,7 @@ require_once(__DIR__ . "/util/util.php");
 require_once(__DIR__ . "/util/autoload.php");
 require_once(__DIR__ . "/../config/config.php");
 
-function cli_main($argv) {
+function cliMain($argv) {
    $argc = count($argv);
    if ($argc < 2) {
       die("Usage: zombie.php <action> <option=value> ...\n" .
@@ -69,6 +69,6 @@ function cli_main($argv) {
    }
 }
 
-cli_main($argv);
+cliMain($argv);
 
 ?>

@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package Database
+ * @subpackage sql
+ * @ignore
+ */
 
 function autoloadSqlClass($class) {
    $classes = array('SqlQuery', 'SqlResult');
