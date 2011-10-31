@@ -37,8 +37,8 @@ function deploy() {
    echo "Copying config files.\n";
    exec("cp $zombie_root/config/version.php $deploy_root/config/version.php");
    exec("cp $zombie_root/config/javascript.xml $deploy_root/config/javascript.xml");
-   exec("cp $zombie_root/config/images.xml $deploy_root/config/javascript.xml");
-   exec("cp $zombie_root/config/stylesheets.xml $deploy_root/config/javascript.xml");
+   exec("cp $zombie_root/config/images.xml $deploy_root/config/images.xml");
+   exec("cp $zombie_root/config/stylesheets.xml $deploy_root/config/stylesheets.xml");
    echo "Copying apps.\n";
    exec("cp -r $zombie_root/apps $deploy_root/apps");
    echo "Copying model.\n";
@@ -51,6 +51,15 @@ function deploy() {
 
    echo "Migrating database.\n";
    echo passthru("php $deploy_root/zombie.php migrate action=run");
+
+   $other_config = file_get_contents("$deploy_root/config/config.php");
+   $other_config = str_replace("getZombieConfig", "getDeployConfig", $other_config);
+   eval("?>" . $other_config);
+   $other_config = getDeployConfig();
+   if ($config['web_root'] != $other_config['web_root']) {
+      echo "Compiling.\n";
+      echo passthru("php $deploy_root/zombie.php compile");
+   }
 
    echo "\nDone.\n";
 }

@@ -27,10 +27,10 @@ class CssSelector {
             $this->attrs[trim($tmp[0])] = trim($tmp[1]);
          }
       }
-      $this->add_hacks();
+      $this->addHacks();
    }
 
-   function add_hacks() {
+   function addHacks() {
       $new_attrs = array();
       foreach ($this->attrs as $attr => $value) {
          switch ($attr) {
@@ -107,7 +107,7 @@ class CssSelector {
       $this->attrs = array_merge($this->attrs, $new_attrs);
    }
 
-   function has_super() {
+   function hasSuper() {
       return (boolean)$this->super;
    }
 
@@ -142,7 +142,7 @@ class CssFile {
       $this->css = $css;
       $this->version = $version;
       $this->images_version = $images_version;
-      $this->parse_css();
+      $this->parseCss();
    }
 
    function render($minify = false) {
@@ -153,11 +153,11 @@ class CssFile {
       return $css;
    }
 
-   function parse_css() {
-      $this->css = $this->strip_comments($this->css);
-      $this->substitute_includes();
-      $this->substitute_vars();
-      $this->build_urls();
+   function parseCss() {
+      $this->css = $this->stripComments($this->css);
+      $this->substituteIncludes();
+      $this->substituteVars();
+      $this->buildUrls();
       $matches = array();
       preg_match_all('/([^{]*)\s*{([^}]+)(?:\s+)?}(?:\s+)?/', $this->css, $matches);
       $this->selectors = array();
@@ -170,14 +170,14 @@ class CssFile {
       }
 
       foreach ($this->selectors as $selector) {
-         if ($selector->has_super()) {
+         if ($selector->hasSuper()) {
             $super = $this->selectors[$selector->super];
             $selector->inherit($super);
          }
       }
    }
 
-   function strip_comments($css) {
+   function stripComments($css) {
       // block comments
       $css = preg_replace('/\/\*(.|\n)*?\*\//', '', $css);
       // single line comments
@@ -185,20 +185,20 @@ class CssFile {
       return $css;
    }
 
-   function substitute_includes() {
+   function substituteIncludes() {
       $matches = array();
       while (preg_match_all('/@include ([a-z0-9_\-\/\.]+).css;(\s+)?/', $this->css, $matches) > 0) {
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $sp = explode('/', $matches[1][$i], 2);
             $include_file_name = __DIR__ . "/../../../apps/" . $sp[0] . "/views/css/" . $sp[1] . ".css";
             $include_file = file_get_contents($include_file_name);
-            $include_file = $this->strip_comments($include_file);
+            $include_file = $this->stripComments($include_file);
             $this->css = str_replace($matches[0][$i], $include_file, $this->css);
          }
       }
    }
 
-   function substitute_vars() {
+   function substituteVars() {
       $matches = array();
       preg_match_all('/@variables {([^}]+)(?:\s+)?}(?:\s+)?/', $this->css, $matches);
       $vars = array();
@@ -217,12 +217,21 @@ class CssFile {
       }
    }
 
-   function build_urls() {
+   function buildUrls() {
       if ($this->images_version !== false) {
          $build = "/build/images/" . $this->images_version;
          preg_match_all("/url\(['\"]?\/images(\/[a-z0-9_]+\/[a-z0-9_\-]+\.[a-z]+)['\"]?\)/i", $this->css, $matches);
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $new_url = "url('" . $build . $matches[1][$i] . "')";
+            $this->css = str_replace($matches[0][$i], $new_url, $this->css);
+         }
+      }
+      $config = getZombieConfig();
+      $web_root = $config['web_root'];
+      if ($web_root != '/' && !empty($web_root)) {
+         preg_match_all("/url\(['\"]?(\/.*?)['\"]?\)/i", $this->css, $matches);
+         for ($i = 0; $i < count($matches[0]); ++$i) {
+            $new_url = "url('" . $web_root . $matches[1][$i] . "')";
             $this->css = str_replace($matches[0][$i], $new_url, $this->css);
          }
       }

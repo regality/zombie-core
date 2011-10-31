@@ -28,6 +28,8 @@ class MemcacheSession extends Session {
     * @ignore
     */
    public function __construct() {
+      parent::__construct();
+      session_name($this->config['session']['name']);
       $this->session = false;
       $this->mem = memcache_connect('localhost', 11211);
       if (isset($_COOKIE['sessid'])) {
@@ -78,13 +80,13 @@ class MemcacheSession extends Session {
     */
    public function create() {
       $this->session_id = sha1(time() + rand(1,10000000));
-      setcookie('sessid',
+      setcookie(session_name(),
                 $this->session_id,
-                time() + 60*30,
-                '/',
-                $_SERVER['SERVER_NAME'],
-                false,
-                true);
+                time() + $this->config['session']['timeout'],
+                '', // path
+                '', // domain
+                $this->config['session']['secure'],
+                $this->config['session']['http_only']);
       $this->session = array();
    }
 

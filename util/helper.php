@@ -28,10 +28,10 @@ function attrsToString($attrs) {
  * @param string $version image build version
  * @return string
  */
-function imgUri($uri, $mode, $version) {
+function imgUri($uri, $mode, $version, $web_root) {
    $pat = "/^\/images\/([a-z0-9_]+\/[a-z_-]+\.[a-z]+)/i";
    if ($mode == 'prod' && preg_match($pat, $uri, $matches)) {
-      $uri = '/build/images/' . $version . '/' . $matches[1];
+      $uri = $web_root . '/build/images/' . $version . '/' . $matches[1];
    }
    return $uri;
 }
@@ -46,9 +46,14 @@ function imgUri($uri, $mode, $version) {
 function img($uri, $attrs = array(), $return = false) {
    static $mode = false;
    static $version = false;
+   static $web_root = false;
    if ($mode === false) {
       $config = getZombieConfig();
       $mode = $config['env'];
+      $web_root = $config['web_root'];
+      if ($web_root == '/') {
+         $web_root = '';
+      }
       if ($mode == 'prod') {
          require_once($config['zombie_root'] . "/config/version.php");
          $version = version();

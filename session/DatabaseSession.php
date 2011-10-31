@@ -22,6 +22,7 @@ class DatabaseSession extends Session {
     */
    protected function __construct() {
       parent::__construct();
+      session_name($this->config['session']['name']);
       $this->session_model = new SessionModel();
       $this->session_model->clearOld($this->config['session']['timeout']);
       $this->session = false;
@@ -83,10 +84,10 @@ class DatabaseSession extends Session {
       setcookie(session_name(),
                 $this->session_id,
                 time() + $this->config['session']['timeout'],
-                '/',
-                $_SERVER['SERVER_NAME'],
-                false,
-                true);
+                '', // path
+                '', // domain
+                $config['session']['secure'],
+                $config['session']['http_only']);
    }
 
    /**

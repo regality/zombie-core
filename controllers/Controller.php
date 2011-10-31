@@ -10,6 +10,7 @@ require_once(__DIR__ . "/../util/error.php");
 require_once(__DIR__ . "/../util/util.php");
 require_once(__DIR__ . "/../util/mobile.php");
 require_once(__DIR__ . "/../util/helper.php");
+require_once(__DIR__ . "/../util/rand.php");
 require_once(__DIR__ . "/../../config/config.php");
 
 /**
@@ -386,7 +387,7 @@ abstract class Controller {
    function getCsrfToken() {
       $token = $this->session->get('csrf_token');
       if (!$token) {
-         $token = md5(rand() . time());
+         $token = strongRand(32);
          $this->session->set('csrf_token', $token);
       }
       return $token;

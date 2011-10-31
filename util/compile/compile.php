@@ -6,7 +6,7 @@
 require_once(__DIR__ . '/ssp.php');
 require_once(__DIR__ . '/../dir.php');
 
-function get_compiled_js($files, $level = 'SIMPLE_OPTIMIZATIONS') {
+function getCompiledJs($files, $level = 'SIMPLE_OPTIMIZATIONS') {
    $cmd = "java -jar " . __DIR__ . "/closure-compiler/compiler.jar " .
           "--compilation_level=$level " .
           "--warning_level=QUIET ";
@@ -17,7 +17,7 @@ function get_compiled_js($files, $level = 'SIMPLE_OPTIMIZATIONS') {
    return $compiled_js;
 }
 
-function compile_js($version, $css_version) {
+function compileJs($version, $css_version) {
    $xml_config = simplexml_load_file(__DIR__ . "/../../../config/javascript.xml");
    $apps_dir = __DIR__ . "/../../../apps/";
    $apps = getDirContents($apps_dir, array('dir'));
@@ -134,7 +134,7 @@ function compile_js($version, $css_version) {
    $tmp_file = __DIR__ . "/tmp/tmp.js";
    file_put_contents($tmp_file, $loaded_js);
    array_unshift($main_files, $tmp_file);
-   $main_js = get_compiled_js($main_files);
+   $main_js = getCompiledJs($main_files);
    $write_file = $base_dir . "/main.js";
    echo "WRITING MAIN JS: $write_file\n";
    file_put_contents($write_file, $main_js);
@@ -144,7 +144,7 @@ function compile_js($version, $css_version) {
       $dir = realpath(__DIR__ . "/../../../apps/" . $standalone[0] . "/views/scripts");
       $file = $dir . '/' . $standalone[1];
       echo "compiling $file\n";
-      $standalone_compiled = get_compiled_js(array($file));
+      $standalone_compiled = getCompiledJs(array($file));
       $write_file = $base_dir . "/" . $standalone[0] . "/" . $standalone[1];
       echo "writing $write_file\n\n";
       file_put_contents($write_file, $standalone_compiled);
@@ -173,7 +173,7 @@ function compile_js($version, $css_version) {
          }
          echo implode("\n   ", $read_files);
          echo "\n";
-         $compiled = $loaded_js . get_compiled_js($read_files);
+         $compiled = $loaded_js . getCompiledJs($read_files);
          $write_file = $base_dir . "/" . $app . "/main.js";
          echo "writing $write_file\n\n";
          file_put_contents($write_file, $compiled);
@@ -183,7 +183,7 @@ function compile_js($version, $css_version) {
    }
 }
 
-function get_css_file_lists() {
+function getCssFileLists() {
    $config = getZombieConfig();
    $root = $config['zombie_root'];
    $apps_dir = __DIR__ . "/../../../apps/";
@@ -223,7 +223,7 @@ function get_css_file_lists() {
    return $files;
 }
 
-function compile_css_list($list, $minify = false, $version = false, $images_version = false) {
+function compileCssList($list, $minify = false, $version = false, $images_version = false) {
    $compiled_css = '';
    foreach ($list as $source) {
       $css = file_get_contents($source);
@@ -233,20 +233,20 @@ function compile_css_list($list, $minify = false, $version = false, $images_vers
    return $compiled_css;
 }
 
-function compile_css($version, $images_version) {
+function compileCss($version, $images_version) {
    echo "COMPILING CSS\n";
    $config = getZombieConfig();
    $root = $config['zombie_root'];
-   $files = get_css_file_lists();
+   $files = getCssFileLists();
    foreach ($files as $file => $list) {
-      $css = compile_css_list($list, true, $version, $images_version);
+      $css = compileCssList($list, true, $version, $images_version);
       $out_file = $root . "/web/build/css/$version/$file.css";
       echo "writing $out_file\n";
       file_put_contents($out_file, $css);
    }
 }
 
-function copy_images($version) {
+function copyImages($version) {
    echo "COPYING IMAGES\n\n";
    $apps_dir = __DIR__ . "/../../../apps/";
    $apps = getDirContents($apps_dir, array('dir'));
@@ -311,7 +311,7 @@ function copy_images($version) {
    }
 }
 
-function write_version($css, $js, $images) {
+function writeVersion($css, $js, $images) {
    $php_str = "<?php /* auto-generated do not touch */\n" .
               "function version() {\n" .
               "   return array('css' => '$css', 'js' => '$js', 'images' => '$images');\n" .
@@ -330,35 +330,36 @@ function compile($options) {
                            'images' => 'images');
    }
    $version = uniqid();
-   $compile_css = false;
-   $compile_js = false;
+   $compileCss = false;
+   $compileJs = false;
    $compile_images = false;
    if (isset($options['css'])) {
-      $compile_css = true;
+      $compileCss = true;
    }
    if (isset($options['js'])) {
-      $compile_js = true;
+      $compileJs = true;
+      $compileCss = true;
    }
    if (isset($options['images'])) {
       $compile_images = true;
-      $compile_css = true;
+      $compileCss = true;
    }
    if (isset($options['all']) ||
-      (!$compile_css && !$compile_js && !$compile_images))
+      (!$compileCss && !$compileJs && !$compile_images))
    {
-      $compile_css = true;
-      $compile_js = true;
+      $compileCss = true;
+      $compileJs = true;
       $compile_images = true;
    }
-   $css_version = ($compile_css ? $version : $old_version['css']);
-   $js_version = ($compile_js ? $version : $old_version['js']);
+   $css_version = ($compileCss ? $version : $old_version['css']);
+   $js_version = ($compileJs ? $version : $old_version['js']);
    $images_version = ($compile_images ? $version : $old_version['images']);
-   write_version($css_version, $js_version, $images_version);
-   if ($compile_css) {
+   writeVersion($css_version, $js_version, $images_version);
+   if ($compileCss) {
       exec("rm -rf $root/web/build/css/" . $old_version['css']);
       exec("mkdir -p $root/web/build/css/" . $css_version);
-      compile_css($css_version, $images_version);
-      if (!$compile_js) {
+      compileCss($css_version, $images_version);
+      if (!$compileJs) {
          $main_js_file = $root . "/web/build/js/" . $js_version . "/main.js";
          $main_js = file_get_contents($main_js_file);
          $main_js = preg_replace("/zs\.settings\.cssVersion\s*=\s*\"[0-9a-f]+\"/",
@@ -367,19 +368,19 @@ function compile($options) {
          file_put_contents($main_js_file, $main_js);
       }
    }
-   if ($compile_js) {
+   if ($compileJs) {
       exec("rm -rf $root/web/build/js/" . $old_version['js']);
       exec("mkdir -p $root/web/build/js/" . $js_version);
       if (!file_exists(__DIR__ . "/tmp")) {
          mkdir(__DIR__ . "/tmp");
       }
-      compile_js($js_version, $css_version);
+      compileJs($js_version, $css_version);
       exec("rm -rf " . __DIR__ . "/tmp");
    }
    if ($compile_images) {
       exec("rm -rf $root/web/build/images/" . $old_version['images']);
       exec("mkdir -p $root/web/build/images/" . $images_version);
-      copy_images($images_version);
+      copyImages($images_version);
    }
 }
 

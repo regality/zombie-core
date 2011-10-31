@@ -4,8 +4,7 @@ $(document).ready(function() {
       if (!zs.ui.verifyForm(form)) {
          return false;
       }
-      $.ajax({"url":"app.php",
-              "data":{"app":"<SLUG>",
+      $.ajax({"data":{"app":"<SLUG>",
 <AJAX_COMMA_SEP_FIELDS>
                       "action":"create"},
               "success":function(data) {
