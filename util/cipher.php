@@ -12,16 +12,19 @@ require_once(__DIR__ . "/rand.php");
 /**
  * encrypt data with default cipher and password
  * @param string $data plain text data
+ * @param string $pass optional password
+ * @param string $type optional algorithm
  * @return string
  */
-function encrypt($data) {
-   static $type = false;
-   static $pass = false;
-   if ($type === false) {
+function encrypt($data, $pass = null, $type = null) {
+   if (is_null($type)) {
       $config = getZombieConfig();
       $type = $config['crypt']['type'];
-      $pass = $config['crypt']['pass'];
+      if (is_null($pass)) {
+         $pass = $config['crypt']['pass'];
+      }
    }
+   echo "encrypting with pass '$pass' and type '$type'\n";
    $iv = strongRand(12);
    $encrypted = openssl_encrypt($data, $type, $pass, false, $iv);
    return $iv . $encrypted;
@@ -30,16 +33,19 @@ function encrypt($data) {
 /**
  * decrypt data with default cipher and password
  * @param string $data encrypted data
+ * @param string $pass optional password
+ * @param string $type optional algorithm
  * @return string
  */
-function decrypt($data) {
-   static $type = false;
-   static $pass = false;
-   if ($type === false) {
+function decrypt($data, $pass = null, $type = null) {
+   if (is_null($type)) {
       $config = getZombieConfig();
       $type = $config['crypt']['type'];
-      $pass = $config['crypt']['pass'];
+      if (is_null($pass)) {
+         $pass = $config['crypt']['pass'];
+      }
    }
+   echo "decrypting with pass '$pass' and type '$type'\n";
    $iv = substr($data, 0, 16);
    $data = substr($data, 16);
    $decrypted = openssl_decrypt($data, $type, $pass, false, $iv);
