@@ -63,7 +63,7 @@ function img($uri, $attrs = array(), $return = false) {
 
    $html_attrs = attrsToString($attrs);
 
-   $uri = imgUri($uri, $mode, $version);
+   $uri = imgUri($uri, $mode, $version, $web_root);
    $tag = "<img src=\"$uri\" $html_attrs />";
    if ($return) {
       return $tag;

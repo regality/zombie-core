@@ -360,6 +360,7 @@ abstract class Controller {
          $match = ($req_token == $token ? true : false);
          if (!$match) {
             $this->save_status = "bad csrf";
+            $this->error("bad csrf");
             return;
          } else {
             if (isset($_SERVER['referer'])) {
@@ -373,6 +374,7 @@ abstract class Controller {
          }
       } else {
          $this->save_status = "no csrf";
+         $this->error("no csrf");
          return;
       }
       $this->save_status = "success";
@@ -388,6 +390,7 @@ abstract class Controller {
       $token = $this->session->get('csrf_token');
       if (!$token) {
          $token = strongRand(32);
+         $token = preg_replace("/[+=\/]/", "", $token);
          $this->session->set('csrf_token', $token);
       }
       return $token;
