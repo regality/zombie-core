@@ -24,7 +24,6 @@ function encrypt($data, $pass = null, $type = null) {
          $pass = $config['crypt']['pass'];
       }
    }
-   echo "encrypting with pass '$pass' and type '$type'\n";
    $iv = strongRand(12);
    $encrypted = openssl_encrypt($data, $type, $pass, false, $iv);
    return $iv . $encrypted;
@@ -45,7 +44,6 @@ function decrypt($data, $pass = null, $type = null) {
          $pass = $config['crypt']['pass'];
       }
    }
-   echo "decrypting with pass '$pass' and type '$type'\n";
    $iv = substr($data, 0, 16);
    $data = substr($data, 16);
    $decrypted = openssl_decrypt($data, $type, $pass, false, $iv);
