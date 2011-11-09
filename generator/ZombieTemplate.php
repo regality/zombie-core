@@ -112,7 +112,7 @@ abstract class ZombieTemplate {
                     $this->base_dir . "/fields/" . $field_name . ".php";
       if (!file_exists($field_file)) {
          $field_file = $this->config['zombie_root'] . 
-                       "/zombie-core/template/fields/" . $field_name . ".php";
+                       "/zombie-core/generator/fields/" . $field_name . ".php";
       }
       $field = new TemplateFile("/dev/null", $field_file);
       return $field;

@@ -28,18 +28,18 @@ function cliMain($argv) {
       }
    }
 
-   if ($action == "create-app") {
+   if ($action == "generate-app") {
       if (!isset($options['app'])) {
-         die ("Usage: zombie.php create-app app=<app name> [template=<template_name>] [option=<value>] ...\n");
+         die ("Usage: zombie.php generate-app app=<app name> [template=<template_name>] [option=<value>] ...\n");
       }
 
       $template = (isset($options['template']) ? $options['template'] : 'basic');
 
-      $base_dir = "/config/template";
-      $template_file = realpath(__DIR__ . "/../config/template/" . $template) . "/template.php";
+      $base_dir = "/config/generator";
+      $template_file = realpath(__DIR__ . "/../config/generator/" . $template) . "/template.php";
       if (!file_exists($template_file)) {
-         $base_dir = "/zombie-core/template/";
-         $template_file = __DIR__ . "/template/" . $template . "/template.php";
+         $base_dir = "/zombie-core/generator/";
+         $template_file = __DIR__ . "/generator/" . $template . "/template.php";
          if (!file_exists($template_file)) {
             die("unknown template: " . $template . "\n");
          }
@@ -47,7 +47,7 @@ function cliMain($argv) {
 
       $app = $options['app'];
 
-      require_once(__DIR__ . "/template/ZombieTemplate.php");
+      require_once(__DIR__ . "/generator/ZombieTemplate.php");
 
       require($template_file);
       $template_class = underscoreToClass($template . "_template");

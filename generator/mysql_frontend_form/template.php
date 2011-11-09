@@ -10,7 +10,7 @@ require_once(__DIR__ . "/../ZombieTemplate.php");
 class MysqlFrontendFormTemplate extends ZombieTemplate {
    public function templatePrepare() {
       if (!isset($this->options['table'])) {
-         die("table option required:\nzombie.php create-app app=<app> template=mysql_fontend_form table=<table>\n");
+         die("table option required:\nzombie.php generate-app app=<app> template=mysql_fontend_form table=<table>\n");
       }
       $config = getZombieConfig();
       $this->addView('index');
