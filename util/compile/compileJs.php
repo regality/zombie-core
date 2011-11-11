@@ -63,10 +63,10 @@ function getAppJsConfig($app) {
                       "module" => array(),
                       "standalone" => array(),
                       "nocompile" => array());
-   $js_config["module"][$app] = array();
    if (in_array($app, $finished_apps)) {
       return $js_config;
    }
+   $js_config["module"][$app] = array();
    array_push($finished_apps, $app);
 
    $config_file = "$root/apps/$app/config/compile.json";
@@ -100,6 +100,9 @@ function getAppJsConfig($app) {
          array_push($js_config["module"][$app], $js_file);
       }
    }
+   if (empty($js_config["module"][$app])) {
+      unset($js_config["module"][$app]);
+   }
    return $js_config;
 }
 
@@ -128,7 +131,17 @@ function compileJs($version, $old_version, $css_version, $images_version) {
             $create_dir = true;
          }
       }
-      if ($create_dir || count($js_config['module'][$app]) > 0) {
+      $templates = getDirContents($apps_dir . $app . "/views/.compiled/", array("file"));
+      foreach ($templates as $template) {
+         if (substr($template, -3) == '.js') {
+            $create_dir = true;
+            if (!isset($js_config['module'][$app])) {
+               $js_config['module'][$app] = array();
+            }
+            break;
+         }
+      }
+      if ($create_dir || !empty($js_config['module'][$app])) {
          echo "creating dir $base_dir/$app\n";
          mkdir("$base_dir/$app");
       }
@@ -183,11 +196,22 @@ function compileJs($version, $old_version, $css_version, $images_version) {
 
    echo "\nCOMPILING MODULE JS\n\n";
    foreach ($js_config['module'] as $app => $js_files) {
-      if (count($js_files) > 0) {
+      $templates = getDirContents($apps_dir . $app . "/views/.compiled/", array("file"));
+      foreach ($templates as $key => $template) {
+         if (substr($template, -3) !== '.js') {
+            unset($templates[$key]);
+         }
+      }
+      if (count($js_files) > 0 || count($templates) > 0) {
          echo "compiling module $app\n   ";
          $dir = realpath(__DIR__ . "/../../../apps/" . $app . "/views/scripts");
+         $tdir = realpath(__DIR__ . "/../../../apps/" . $app . "/views/.compiled");
          $read_files = array();
          $loaded_js = '';
+         foreach ($templates as $template) {
+            array_push($read_files, $tdir . '/' . $template);
+            $loaded_js .= "zs.util.scripts[\"/build/js/{$version}/{$app}/template/{$template}\"] = \"loaded\";\n";
+         }
          foreach ($js_files as $js_file) {
             array_push($read_files, $dir . '/' . $js_file);
             $loaded_js .= "zs.util.scripts[\"/build/js/{$version}/{$app}/{$js_file}\"] = \"loaded\";\n";

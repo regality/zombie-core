@@ -6,6 +6,7 @@
 require_once(__DIR__ . '/compileJs.php');
 require_once(__DIR__ . '/compileCss.php');
 require_once(__DIR__ . '/compileImages.php');
+require_once(__DIR__ . '/../../template/createTemplate.php');
 
 function writeVersion($css, $js, $images) {
    $php_str = "<?php /* Auto-generated. Do not touch. */\n" .
@@ -29,24 +30,32 @@ function compile($options) {
    $compile_css = false;
    $compile_js = false;
    $compile_images = false;
+   $compile_templates = false;
    if (isset($options['css'])) {
       $compile_css = true;
       $compile_js = true;
+      $compile_templates = true;
    }
    if (isset($options['js'])) {
       $compile_js = true;
       $compile_css = true;
+      $compile_templates = true;
    }
    if (isset($options['images'])) {
       $compile_images = true;
       $compile_css = true;
+      $compile_templates = true;
+   }
+   if (isset($options['templates'])) {
+      $compile_templates = true;
    }
    if (isset($options['all']) ||
-      (!$compile_css && !$compile_js && !$compile_images))
+      (!$compile_css && !$compile_js && !$compile_images && !$compile_templates))
    {
       $compile_css = true;
       $compile_js = true;
       $compile_images = true;
+      $compile_templates = true;
    }
    $css_version = ($compile_css ? $version : $old_version['css']);
    $js_version = ($compile_js ? $version : $old_version['js']);
@@ -54,6 +63,9 @@ function compile($options) {
    writeVersion($css_version, $js_version, $images_version);
    if ($compile_css) {
       compileCss($css_version, $old_version['css'], $images_version);
+   }
+   if ($compile_templates) {
+      compileTemplates();
    }
    if ($compile_js) {
       compileJs($js_version, $old_version['js'], $css_version, $images_version);

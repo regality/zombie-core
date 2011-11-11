@@ -247,25 +247,31 @@ abstract class Controller {
          }
          $this->renderJson();
       } else {
-         $file = $this->config['zombie_root'] . "/apps/" . $this->view_base . 
-                 "/views/" . $this->view . ".php";
-         if (file_exists($file)) {
-            foreach ($this->data as $var => $val) {
-               $$var = $val;
-            }
+         $root = $this->config['zombie_root'];
+         foreach ($this->data as $var => $val) {
+            $$var = $val;
+         }
+         if ($this->config['env'] == 'dev') {
+            require_once(__DIR__ . "/../template/createTemplate.php");
             if ($this->is_page) {
-               if (!method_exists($menu, 'run')) {
-                  require_once($this->config['zombie_root'] . '/apps/menu/menu.php');
-                  $menu = new Menu(); 
-               }
-               if (isset($token)) {
-                  $token= $this->getCsrfToken();
-               }
-               include($this->config['zombie_root'] . "/apps/home/views/open.php");
-               include($file);
-               include($this->config['zombie_root'] . "/apps/home/views/close.php");
-            } else {
-               include($file);
+               eval("?>" . getPHPTemplate("home", "open"));
+            }
+            eval("?>" . getPHPTemplate($this->view_base, $this->view));
+            if ($this->is_page) {
+               eval("?>" . getPHPTemplate("home", "close"));
+            }
+         } else {
+            $file = $root . "/apps/" . $this->view_base . 
+                    "/views/.compiled/" . $this->view . ".php";
+            if ($this->is_page) {
+               $home_view_dir = $root . "/apps/home/views/.compiled/";
+               $open_view = $home_view_dir . "open.php";
+               $close_view = $home_view_dir . "close.php";
+               @include($open_view);
+            }
+            @include($file);
+            if ($this->is_page) {
+               @include($close_view);
             }
          }
          renderErrorsJs();
