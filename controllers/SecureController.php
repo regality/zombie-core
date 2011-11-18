@@ -14,7 +14,7 @@
 abstract class SecureController extends Controller {
    public function __construct() {
       parent::__construct();
-      $this->is_secure = true;
+      $this->bouncer = "Secure";
    }
 }
 
