@@ -114,7 +114,7 @@ function compileJs($version, $old_version, $css_version, $images_version) {
    $config = getZombieConfig();
    $root = $config['zombie_root'];
    $js_config = getJsCompileConfig();
-   $base_dir = realpath("$root/web/build/js/") . "/" . $version;
+   $base_dir = "$root/web/build/js/$version";
    exec("rm -rf $root/web/build/js/" . $old_version);
    exec("mkdir -p $base_dir");
    if (!file_exists(__DIR__ . "/tmp")) {

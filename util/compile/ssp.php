@@ -31,6 +31,10 @@ class CssSelector {
    }
 
    function addHacks() {
+      $num_pat = "\s*\d*\.?\d*\s*";
+      $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,?(?:$num_pat)?\)" .
+                   "|#[a-f0-9]+)?";
+      $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),?($num_pat)?\)/";
       $new_attrs = array();
       foreach ($this->attrs as $attr => $value) {
          switch ($attr) {
@@ -51,10 +55,7 @@ class CssSelector {
                $new_attrs['filter'] = 'alpha(opacity=' . intval($value * 100) . ')';
                break;
             case 'text-shadow':
-               $num_pat = "\s*\d+\.?\d*\s*";
-               $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,?(:?$num_pat)?\)" .
-                            "|#[a-f0-9]+)?";
-               $pat = "/$color_pat?\s*(\d+)px (\d+)px (\d+)px\s*$color_pat?/";
+               $pat = "/$color_pat?\s*(\d+)px\s+(\d+)px\s+(\d+)px?\s*$color_pat/";
                preg_match($pat, $value, $matches);
                $color = $matches[1];
                $x = $matches[2];
@@ -63,7 +64,6 @@ class CssSelector {
                if (!$color) {
                   $color = $matches[5];
                }
-               $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),?($num_pat)?\)/";
                if (preg_match($rgb_pat, $color, $matches) > 0) {
                   $red = dechex($matches[1]);
                   $red = (strlen($red) == 1 ? '0'.$red : $red);
@@ -77,6 +77,30 @@ class CssSelector {
                $angle = intval(atan($x/$y)*360/2/3.14159265358979323 + 90);
                // currently this kills opacity, better fix it
                $new_attrs['filter'] = "\"progid:DXImageTransform.Microsoft.Shadow(direction=$angle,strength=$strength,color=$color)\"";
+               break;
+            case 'background':
+               $color_percent_pat = "$color_pat\s+\d{1,3}%";
+               $words_pat = "[a-z0-9\-]+\s*,?\s*";
+               $gradient_pat = "/$color_pat?\s+(linear|radial)-gradient\s*" .
+                               "\(($words_pat)\s+(?:$color_percent_pat\s*,?\s*)+\)/";
+               if (preg_match($gradient_pat, $value, $matches) > 0) {
+                  $color = $matches[1];
+                  $type = $matches[2];
+                  $words = $matches[3];
+                  $colors = array();
+                  preg_match_all("/$color_percent_pat/", $value, $matches) . "\n";
+                  foreach ($matches[0] as $match) {
+                     array_push($colors, $match);
+                  }
+                  $colors = implode(",", $colors);
+                  $moz = "$color -moz-$type-gradient($words $colors)";
+                  $wkit = "$color -webkit-$type-gradient($words $colors)";
+                  $opera = "$color -o-$type-gradient($words $colors)";
+                  $ie10 = "$color -ms-$type-gradient($words $colors)";
+                  $w3c = "$color $type-gradient($words $colors)";
+                  $bg_list = array($color, $moz, $wkit, $opera, $ie10, $w3c);
+                  $new_attrs['background'] = implode(";\n  background: ", $bg_list);
+               }
                break;
             case 'box-shadow':
                $new_attrs['-webkit-box-shadow'] = $value;

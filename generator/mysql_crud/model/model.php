@@ -24,7 +24,8 @@ class <MODEL_CLASS_NAME> extends ModelBase {
    public function delete($id) {
       $delete = new MysqlDelete();
       $delete->deleteFrom('<TABLE_NAME>')
-             ->where('id = $1');
+             ->where('id = $1')
+             ->addParam($id);
       return $delete->exec();
    }
 
