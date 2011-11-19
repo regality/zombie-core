@@ -39,7 +39,7 @@ class <MODEL_CLASS_NAME> extends ModelBase {
    public function update($id,
                           <INSERT_FUNC_PARAMS_MODEL>) {
       $update = new MysqlUpdate();
-      $update->update('<TABLE_NAME')
+      $update->update('<TABLE_NAME>')
              ->set('<SET_FIELDS_COMMA_SEP>')
              ->where('id = $1')
              ->addParam($id)<MYSQL_ADD_PARAMS>;

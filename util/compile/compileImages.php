@@ -20,12 +20,17 @@ function copyImages($version, $old_version) {
       if (file_exists($config_file)) {
          $contents = file_get_contents($config_file);
          $config_arr = json_decode($contents, true);
-         $images = $config_arr['images'];
-         foreach ($images as $image) {
-            if (isset($image['resize'])) {
-               array_push($resize, array('app' => $app,
-                                         'name' => $image['name'],
-                                         'size' => $image['resize']));
+         if (!$config_arr) {
+            echo "ERROR: Possible problem with compile config for `$app`\n";
+         }
+         if (is_array($config_arr['images'])) {
+            $images = $config_arr['images'];
+            foreach ($images as $image) {
+               if (isset($image['resize'])) {
+                  array_push($resize, array('app' => $app,
+                                            'name' => $image['name'],
+                                            'size' => $image['resize']));
+               }
             }
          }
       }

@@ -62,6 +62,7 @@ function getAppJsConfig($app) {
    $js_config = array("main" => array(),
                       "module" => array(),
                       "standalone" => array(),
+                      "ignore" => array(),
                       "nocompile" => array());
    if (in_array($app, $finished_apps)) {
       return $js_config;
@@ -73,6 +74,9 @@ function getAppJsConfig($app) {
    if (file_exists($config_file)) {
       $contents = file_get_contents($config_file);
       $config_arr = json_decode($contents, true);
+      if (!$config_arr) {
+         echo "ERROR: Possible problem with compile config for `$app`";
+      }
       $config_arr = $config_arr['javascript'];
    }
    if (isset($config_arr) && is_array($config_arr)) {

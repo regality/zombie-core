@@ -97,9 +97,32 @@ class EchoTagJS extends FunctionTagJS {
 }
 
 class CechoTagJS extends FunctionTagJS {
+   function issetCondition($var) {
+      $levels = explode(".", $var);
+      $cond = array();
+      $sofar = '';
+      foreach ($levels as $level) {
+         if ($sofar) {
+            $hop = "$sofar.hasOwnProperty(\"$level\")";
+            array_push($cond, $hop);
+            $sofar .= ".";
+         } else {
+            $hop = false;
+         }
+         $sofar .= $level;
+         array_push($cond, $sofar);
+      }
+      $condition = implode(" && ", $cond);
+      return $condition;
+   }
+
    function __toString() {
       $var = PhpToJs::varToJs($this->contents);
-      return " ($var ? $var : '') ";
+      $condition = $this->issetCondition($var);
+      return "(function(data) { var " . OUTPUT_VAR . " = '';\n" .
+             "if ($condition) { " .
+             "o += $var;\n" .
+             "}})(data) ";
    }
 }
 
@@ -116,11 +139,12 @@ class IncludeTagJS extends FunctionTagJS {
    }
 }
 
-class IssetTagJS extends FunctionTagJS {
+class IssetTagJS extends CechoTagJS {
    function __toString() {
       $var = PhpToJs::varToJs($this->contents);
+      $condition = $this->issetCondition($var);
       return "(function(data) { var " . OUTPUT_VAR . " = '';\n" .
-             "if (typeof $var != \"undefined\" && $var != null) { ";
+             "if ($condition) { ";
    }
 }
 
@@ -158,7 +182,7 @@ class ForeachTagJS extends StructureTagJS {
       $key = ($matches[3] ? substr($matches[3], 1) : 'key');
       $iterator = PhpToJs::varToJs($matches[5]);
       $str = "(function(data) { var " . OUTPUT_VAR . " = '';\n";
-      $str .= "for (var $key in $iterable) {";
+      $str .= "for (var $key in $iterable) { if ($iterable.hasOwnProperty($key)) {";
       PhpToJs::pushVar($iterator, $iterable . '[' . $key . ']');
       PhpToJs::pushVar("data." . $key, $key);
       return $str;
@@ -169,7 +193,7 @@ class EndforeachTagJS extends EndStructureTagJS {
    function __toString() {
       PhpToJs::popVar();
       PhpToJs::popVar();
-      return parent::__toString();
+      return " '';}}\nreturn " . OUTPUT_VAR . ";\n})(data) ";
    }
 }
 
