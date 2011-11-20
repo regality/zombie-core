@@ -23,7 +23,7 @@ function copyImages($version, $old_version) {
          if (!$config_arr) {
             echo "ERROR: Possible problem with compile config for `$app`\n";
          }
-         if (is_array($config_arr['images'])) {
+         if (isset($config_arr['images']) && is_array($config_arr['images'])) {
             $images = $config_arr['images'];
             foreach ($images as $image) {
                if (isset($image['resize'])) {

@@ -121,8 +121,9 @@ class CechoTagJS extends FunctionTagJS {
       $condition = $this->issetCondition($var);
       return "(function(data) { var " . OUTPUT_VAR . " = '';\n" .
              "if ($condition) { " .
-             "o += $var;\n" .
-             "}})(data) ";
+             OUTPUT_VAR . " += $var;\n" .
+             "}\n" .
+             "return " . OUTPUT_VAR . "; })(data) ";
    }
 }
 
