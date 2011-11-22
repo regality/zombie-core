@@ -38,6 +38,7 @@ class CouchDB {
 
    function update($id, $obj) {
       $url = "/" . $this->db . "/" . $id;
+      $obj['_id'] = $id;
       $options = array("method" => HTTP_METH_PUT,
                        "postdata" => json_encode($obj));
       return $this->request($url, $options);
@@ -81,10 +82,17 @@ class CouchDB {
       $request = new HttpRequest($url, $method);
       $request->setHeaders($headers);
       if (isset($post_data)) {
-         $request->setRawPostData($post_data);
+         if ($method == HTTP_METH_PUT) {
+            $request->addPutData($post_data);
+         } else if ($method == HTTP_METH_POST) {
+            $request->setRawPostData($post_data);
+         }
       }
       $json = $request->send()->getBody();
       $data = json_decode($json, true);
+      if (isset($data['rows'])) {
+         $data = new CouchResult($data);
+      }
       return $data;
    }
 

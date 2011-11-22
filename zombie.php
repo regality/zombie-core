@@ -62,6 +62,12 @@ function cliMain($argv) {
    } else if ($action == "deploy") {
       require(__DIR__ . "/util/deploy.php");
       deploy();
+   } else if ($action == "install-package") {
+      if (!isset($options['name'])) {
+         die ("Usage: zombie.php install-package name=<package name>\n");
+      }
+      require(__DIR__ . "/packages/installer.php");
+      installPackage($options['name']);
    } else if ($action == "kachow") {
       echo "kachow!\n";
    } else {

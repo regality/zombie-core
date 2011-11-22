@@ -7,19 +7,17 @@ class <CLASS_NAME> extends Controller {
     *********************************************/
 
    public function indexRun($request) {
-      $<TABLE_NAME>_model = new <MODEL_CLASS_NAME>();
-      $this->data['<TABLE_NAME>'] = $<TABLE_NAME>_model->getAll();
+      $<DATABASE_NAME>_model = new <MODEL_CLASS_NAME>();
+      $this->data['<DATABASE_NAME>'] = $<DATABASE_NAME>_model->getAll();
    }
 
    public function editRun($request) {
-<MODEL_GET_ALL>
-      $<TABLE_NAME>_model = new <MODEL_CLASS_NAME>();
-      $this->data['<TABLE_NAME>'] = $<TABLE_NAME>_model->getOne($request['id']);
+      $<DATABASE_NAME>_model = new <MODEL_CLASS_NAME>();
+      $this->data['<DATABASE_NAME>'] = $<DATABASE_NAME>_model->getOne($request['_id']);
       $this->data['form_action'] = 'update';
    }
 
    public function newRun($request) {
-<MODEL_GET_ALL>
       $this->view = 'edit';
       $this->data['form_action'] = 'create';
    }
@@ -38,20 +36,20 @@ class <CLASS_NAME> extends Controller {
     *********************************************/
 
    public function createSave($request) {
-      $<TABLE_NAME>_model = new <MODEL_CLASS_NAME>();
-      $status = $<TABLE_NAME>_model->insert(<INSERT_FUNC_PARAMS_APP>);
+      $<DATABASE_NAME>_model = new <MODEL_CLASS_NAME>();
+      $status = $<DATABASE_NAME>_model->insert($request);
       $this->data['status'] = ($status ? "success" : "failed");
    }
 
    public function updateSave($request) {
-      $<TABLE_NAME>_model = new <MODEL_CLASS_NAME>();
-      $status = $<TABLE_NAME>_model->update($request['id'], <INSERT_FUNC_PARAMS_APP>);
+      $<DATABASE_NAME>_model = new <MODEL_CLASS_NAME>();
+      $status = $blog_model->update($request['_id'], $request['_rev'], $request);
       $this->data['status'] = ($status ? "success" : "failed");
    }
 
    public function deleteSave($request) {
-      $<TABLE_NAME>_model = new <MODEL_CLASS_NAME>();
-      $status = $<TABLE_NAME>_model->delete($request['id']);
+      $<DATABASE_NAME>_model = new <MODEL_CLASS_NAME>();
+      $status = $blog_model->delete($request['_id'], $request['_rev']);
       $this->data['status'] = ($status ? "success" : "failed");
    }
 
