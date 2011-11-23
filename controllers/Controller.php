@@ -75,7 +75,7 @@ abstract class Controller {
       $this->session = $sess_class::getSession();
       $this->mobileInit();
       $this->bouncer = "Basic";
-      $this->renderer = "Html";
+      $this->allowed_formats = array("Html", "FourOhFour");
    }
 
    /**
@@ -120,15 +120,50 @@ abstract class Controller {
          $this->action = $action;
       }
       $this->view = $this->action;
-      $this->request = is_null($request) ? $_REQUEST : $request;
-      $this->format = isset($this->request['format']) ? $this->request['format'] : 'html';
-      if ($this->format == 'json') {
-         $this->renderer = 'Json';
-      }
-      if ($this->format == 'xml') {
-         $this->renderer = 'Xml';
-      }
+      $this->request = is_null($request)
+                        ? $_REQUEST
+                        : $request;
+      $this->format = isset($this->request['format'])
+                        ? underscoreToClass($this->request['format'])
+                        : 'Html';
+      $this->use_default_renderer = !isset($this->request['format']);
+      $this->renderer = isset($this->renderer)
+                        ? $this->renderer
+                        : $this->format;
       $this->data = array();
+   }
+
+   /**
+    * Allow zombie to render a format.
+    * Provided formats include html, page, json, serial, and xml.
+    * @param string $format
+    */
+   public function allowFormat($format) {
+      array_push($this->allowed_formats, underscoreToClass($format));
+   }
+
+   /**
+    * Don't allow zombie to render a format.
+    * Provided formats include html, page, json, serial, and xml.
+    * @param string $format
+    */
+   public function disallowFormat($format) {
+      $key = array_search($format, $this->allowed_formats);
+      unset($this->allowed_formats[$key]);
+   }
+
+   /**
+    * If no format is specified in the url, tell zombie which to use.
+    * Provided formats include html, page, json, serial, and xml.
+    * @param string $format
+    */
+   public function defaultFormat($format) {
+      $this->allowFormat($format);
+      $format = underscoreToClass($format);
+      if ($this->use_default_renderer) {
+         $this->format = $format;
+         $this->renderer = $format;
+      }
    }
 
    /**
@@ -139,6 +174,10 @@ abstract class Controller {
    public function init() {
    }
 
+   /**
+    * Prepare, execute and render.
+    * @ignore
+    */
    public function run($action = null, $request = null) {
       $this->prepare($action, $request);
       $this->init();
@@ -149,9 +188,16 @@ abstract class Controller {
          $this->bouncer = new $bouncer_class();
       }
       if (!is_object($this->renderer)) {
-         $renderer_class = $this->renderer . "Renderer";
-         require_once(__DIR__ . "/renderers/$renderer_class.php");
-         $this->renderer = new $renderer_class();
+         if (in_array($this->renderer, $this->allowed_formats)) {
+            $renderer_class = $this->renderer . "Renderer";
+            require_once(__DIR__ . "/renderers/$renderer_class.php");
+            $this->renderer = new $renderer_class();
+         } else {
+            require_once(__DIR__ . "/bouncers/RejectBouncer.php");
+            require_once(__DIR__ . "/renderers/BadFormatRenderer.php");
+            $this->bouncer = new RejectBouncer();
+            $this->renderer = new BadFormatRenderer();
+         }
       }
 
       $this->bouncer->bounce($this);
@@ -183,7 +229,7 @@ abstract class Controller {
             $this->view = 'default';
             $this->defaultRun($this->request);
          } else {
-            $this->renderer = "FourOhFour";
+            $this->renderer = new FourOhFourRenderer();
          }
       }
    }

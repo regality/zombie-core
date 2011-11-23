@@ -16,6 +16,10 @@ class HtmlRenderer {
             @include($file);
          }
       }
+      $this->renderMessages($controller);
+   }
+
+   function renderMessages($controller) {
       renderErrorsJs();
       $this->renderJsMesg($controller);
    }

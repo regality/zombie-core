@@ -21,7 +21,12 @@ class PageRenderer extends HtmlRenderer {
             $open_view = $home_view_dir . "open.php";
             $close_view = $home_view_dir . "close.php";
             @include($open_view);
-            @include($file);
+            if (file_exists($file)) {
+               @include($file);
+            } else {
+               $this->warn("Template does not exist: " .
+                           $controller->view_base . "/" . $controller->view);
+            }
             @include($close_view);
          }
       }

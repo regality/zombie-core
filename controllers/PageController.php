@@ -13,6 +13,7 @@
 abstract class PageController extends Controller {
    public function __construct() {
       parent::__construct();
+      $this->allowFormat("page");
       $this->renderer = "Page";
    }
 }

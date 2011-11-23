@@ -10,8 +10,7 @@ class FourOhFourRenderer extends HtmlRenderer {
          $file = $root . "/apps/home/views/.compiled/404.php";
          @include($file);
       }
-      renderErrorsJs();
-      $this->renderJsMesg($controller);
+      $this->renderMessages($controller);
    }
 }
 
