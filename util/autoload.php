@@ -42,12 +42,25 @@ function autoloadController($class) {
    }
 }
 
-include(__DIR__ . "/../database/sql/autoload.php");
-include(__DIR__ . "/../database/mysql/autoload.php");
+function autoloadBouncer($class) {
+   if (substr($class, -7) == 'Bouncer') {
+      include($GLOBALS['zombie_root'] . '/zombie-core/controllers/bouncers/' . $class . '.php');
+   }
+}
+
+function autoloadRenderer($class) {
+   if (substr($class, -8) == 'Renderer') {
+      include($GLOBALS['zombie_root'] . '/zombie-core/controllers/renderers/' . $class . '.php');
+   }
+}
+
+include(__DIR__ . "/../database/autoload.php");
 spl_autoload_register('autoloadModel');
 spl_autoload_register('autoloadSession');
 spl_autoload_register('autoloadModelBase');
 spl_autoload_register('autoloadController');
+spl_autoload_register('autoloadRenderer');
+spl_autoload_register('autoloadBouncer');
 spl_autoload_register('autoloadApp');
 
 ?>

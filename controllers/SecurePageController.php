@@ -13,7 +13,8 @@
 abstract class SecurePageController extends SecureController {
    public function __construct() {
       parent::__construct();
-      $this->is_page = true;
+      $this->bouncer = "Secure";
+      $this->renderer = "Page";
    }
 }
 

@@ -27,10 +27,14 @@ class CssSelector {
             $this->attrs[trim($tmp[0])] = trim($tmp[1]);
          }
       }
-      $this->add_hacks();
+      $this->addHacks();
    }
 
-   function add_hacks() {
+   function addHacks() {
+      $num_pat = "\s*\d*\.?\d*\s*";
+      $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,?(?:$num_pat)?\)" .
+                   "|#[a-f0-9]+)?";
+      $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),?($num_pat)?\)/";
       $new_attrs = array();
       foreach ($this->attrs as $attr => $value) {
          switch ($attr) {
@@ -51,10 +55,7 @@ class CssSelector {
                $new_attrs['filter'] = 'alpha(opacity=' . intval($value * 100) . ')';
                break;
             case 'text-shadow':
-               $num_pat = "\s*\d+\.?\d*\s*";
-               $color_pat = "(rgba?\($num_pat,$num_pat,$num_pat,?(:?$num_pat)?\)" .
-                            "|#[a-f0-9]+)?";
-               $pat = "/$color_pat?\s*(\d+)px (\d+)px (\d+)px\s*$color_pat?/";
+               $pat = "/$color_pat?\s*(\d+)px\s+(\d+)px\s+(\d+)px?\s*$color_pat/";
                preg_match($pat, $value, $matches);
                $color = $matches[1];
                $x = $matches[2];
@@ -63,7 +64,6 @@ class CssSelector {
                if (!$color) {
                   $color = $matches[5];
                }
-               $rgb_pat = "/^rgba?\(($num_pat),($num_pat),($num_pat),?($num_pat)?\)/";
                if (preg_match($rgb_pat, $color, $matches) > 0) {
                   $red = dechex($matches[1]);
                   $red = (strlen($red) == 1 ? '0'.$red : $red);
@@ -77,6 +77,30 @@ class CssSelector {
                $angle = intval(atan($x/$y)*360/2/3.14159265358979323 + 90);
                // currently this kills opacity, better fix it
                $new_attrs['filter'] = "\"progid:DXImageTransform.Microsoft.Shadow(direction=$angle,strength=$strength,color=$color)\"";
+               break;
+            case 'background':
+               $color_percent_pat = "$color_pat\s+\d{1,3}%";
+               $words_pat = "[a-z0-9\-]+\s*,?\s*";
+               $gradient_pat = "/$color_pat?\s+(linear|radial)-gradient\s*" .
+                               "\(($words_pat)\s+(?:$color_percent_pat\s*,?\s*)+\)/";
+               if (preg_match($gradient_pat, $value, $matches) > 0) {
+                  $color = $matches[1];
+                  $type = $matches[2];
+                  $words = $matches[3];
+                  $colors = array();
+                  preg_match_all("/$color_percent_pat/", $value, $matches) . "\n";
+                  foreach ($matches[0] as $match) {
+                     array_push($colors, $match);
+                  }
+                  $colors = implode(",", $colors);
+                  $moz = "$color -moz-$type-gradient($words $colors)";
+                  $wkit = "$color -webkit-$type-gradient($words $colors)";
+                  $opera = "$color -o-$type-gradient($words $colors)";
+                  $ie10 = "$color -ms-$type-gradient($words $colors)";
+                  $w3c = "$color $type-gradient($words $colors)";
+                  $bg_list = array($color, $moz, $wkit, $opera, $ie10, $w3c);
+                  $new_attrs['background'] = implode(";\n  background: ", $bg_list);
+               }
                break;
             case 'box-shadow':
                $new_attrs['-webkit-box-shadow'] = $value;
@@ -107,7 +131,7 @@ class CssSelector {
       $this->attrs = array_merge($this->attrs, $new_attrs);
    }
 
-   function has_super() {
+   function hasSuper() {
       return (boolean)$this->super;
    }
 
@@ -142,7 +166,7 @@ class CssFile {
       $this->css = $css;
       $this->version = $version;
       $this->images_version = $images_version;
-      $this->parse_css();
+      $this->parseCss();
    }
 
    function render($minify = false) {
@@ -153,11 +177,11 @@ class CssFile {
       return $css;
    }
 
-   function parse_css() {
-      $this->css = $this->strip_comments($this->css);
-      $this->substitute_includes();
-      $this->substitute_vars();
-      $this->build_urls();
+   function parseCss() {
+      $this->css = $this->stripComments($this->css);
+      $this->substituteIncludes();
+      $this->substituteVars();
+      $this->buildUrls();
       $matches = array();
       preg_match_all('/([^{]*)\s*{([^}]+)(?:\s+)?}(?:\s+)?/', $this->css, $matches);
       $this->selectors = array();
@@ -170,14 +194,14 @@ class CssFile {
       }
 
       foreach ($this->selectors as $selector) {
-         if ($selector->has_super()) {
+         if ($selector->hasSuper()) {
             $super = $this->selectors[$selector->super];
             $selector->inherit($super);
          }
       }
    }
 
-   function strip_comments($css) {
+   function stripComments($css) {
       // block comments
       $css = preg_replace('/\/\*(.|\n)*?\*\//', '', $css);
       // single line comments
@@ -185,20 +209,20 @@ class CssFile {
       return $css;
    }
 
-   function substitute_includes() {
+   function substituteIncludes() {
       $matches = array();
       while (preg_match_all('/@include ([a-z0-9_\-\/\.]+).css;(\s+)?/', $this->css, $matches) > 0) {
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $sp = explode('/', $matches[1][$i], 2);
             $include_file_name = __DIR__ . "/../../../apps/" . $sp[0] . "/views/css/" . $sp[1] . ".css";
             $include_file = file_get_contents($include_file_name);
-            $include_file = $this->strip_comments($include_file);
+            $include_file = $this->stripComments($include_file);
             $this->css = str_replace($matches[0][$i], $include_file, $this->css);
          }
       }
    }
 
-   function substitute_vars() {
+   function substituteVars() {
       $matches = array();
       preg_match_all('/@variables {([^}]+)(?:\s+)?}(?:\s+)?/', $this->css, $matches);
       $vars = array();
@@ -217,12 +241,21 @@ class CssFile {
       }
    }
 
-   function build_urls() {
+   function buildUrls() {
       if ($this->images_version !== false) {
          $build = "/build/images/" . $this->images_version;
          preg_match_all("/url\(['\"]?\/images(\/[a-z0-9_]+\/[a-z0-9_\-]+\.[a-z]+)['\"]?\)/i", $this->css, $matches);
          for ($i = 0; $i < count($matches[0]); ++$i) {
             $new_url = "url('" . $build . $matches[1][$i] . "')";
+            $this->css = str_replace($matches[0][$i], $new_url, $this->css);
+         }
+      }
+      $config = getZombieConfig();
+      $web_root = $config['web_root'];
+      if ($web_root != '/' && !empty($web_root)) {
+         preg_match_all("/url\(['\"]?(\/.*?)['\"]?\)/i", $this->css, $matches);
+         for ($i = 0; $i < count($matches[0]); ++$i) {
+            $new_url = "url('" . $web_root . $matches[1][$i] . "')";
             $this->css = str_replace($matches[0][$i], $new_url, $this->css);
          }
       }

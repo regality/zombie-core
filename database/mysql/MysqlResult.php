@@ -88,9 +88,16 @@ class MysqlResult extends SqlResult {
     * @ignore
     */
    public function next() {
-      $this->row_data = mysql_fetch_assoc($this->result);
-      $this->fixTypes($this->row_data);
-      $this->position++;
+      $this->row_data = false;
+      while (!$this->row_data) {
+         $this->row_data = mysql_fetch_assoc($this->result);
+         if ($this->row_data == false) {
+            return false;
+         }
+         $this->position++;
+         $this->fixTypes($this->row_data);
+         $this->applyFilters($this->row_data);
+      }
    }
 
    /**
@@ -101,8 +108,7 @@ class MysqlResult extends SqlResult {
       if ($this->numRows() > 0) {
          mysql_data_seek($this->result, 0);
       }
-      $this->row_data = mysql_fetch_assoc($this->result); 
-      $this->fixTypes($this->row_data);
+      $this->next();
    }
 
    /**

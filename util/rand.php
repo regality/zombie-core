@@ -13,7 +13,7 @@
  * @return string
  */
 function strongRand($num_bytes, $raw = false) {
-   $rand = fread(fopen('/dev/urandom', 'r'), $num_bytes);
+   $rand = openssl_random_pseudo_bytes($num_bytes);
    if (!$raw) {
       $rand = base64_encode($rand);
    }

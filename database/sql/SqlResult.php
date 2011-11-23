@@ -24,6 +24,12 @@ abstract class SqlResult implements Iterator {
    protected $callbacks = array();
 
    /**
+    * callbacks
+    * @ignore
+    */
+   protected $filter_callbacks = array();
+
+   /**
     * Get the number of rows returned.
     * @return int
     */
@@ -79,6 +85,20 @@ abstract class SqlResult implements Iterator {
                $this->row[$col] = $this->callbacks[$col]($row[$col]);
             }
          }
+      }
+   }
+
+   public function addFilter($filter_callback) {
+      array_push($this->filter_callbacks, $filter_callback);
+   }
+
+   public function removeLastFilter() {
+      array_pop($this->filter_callbacks);
+   }
+
+   protected function applyFilters(&$row) {
+      foreach ($this->filter_callbacks as $filter) {
+         $row = $filter($row, $this->key());
       }
    }
 

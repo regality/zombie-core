@@ -13,9 +13,10 @@ class PhpSession extends Session {
     */
    protected function __construct() {
       parent::__construct();
+      session_name($this->config['session']['name']);
       session_set_cookie_params($this->config['session']['timeout'],
-                                '/' . $this->config['web_root'],
-                                $this->config['domain'],
+                                '', // path
+                                '', // domain
                                 $this->config['session']['secure'],
                                 $this->config['session']['http_only']);
       $this->create();
@@ -82,7 +83,7 @@ class PhpSession extends Session {
     * Destroy a session
     */
    public function destroy() {
-      setcookie(session_name(),'',time() - 1);
+      setcookie(session_name(), '', time() - 1);
       session_destroy();
    }
 
