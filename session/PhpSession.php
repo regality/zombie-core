@@ -15,7 +15,7 @@ class PhpSession extends Session {
       parent::__construct();
       session_name($this->config['session']['name']);
       session_set_cookie_params($this->config['session']['timeout'],
-                                '', // path
+                                '/', // path
                                 '', // domain
                                 $this->config['session']['secure'],
                                 $this->config['session']['http_only']);

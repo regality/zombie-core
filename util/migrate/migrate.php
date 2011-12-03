@@ -30,6 +30,7 @@ function runMigrations() {
    }
    $applied_dir = $config['zombie_root'] . "/model/migrate/applied/";
    $migrations = getDirContents($applied_dir, array("file"));
+   sort($migrations);
    foreach ($migrations as $migration) {
       if (!isset($completed[$migration])) {
          echo "Applying migration $migration\n";

@@ -2,6 +2,10 @@
 
 class <CLASS_NAME> extends Controller {
 
+   public function init() {
+      $this->allowFormat("json");
+   }
+
    /*********************************************
     * run functions
     *********************************************/

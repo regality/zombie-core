@@ -1,6 +1,8 @@
 <?php
 
-abstract class DataRenderer {
+require_once("RenderInterface.php");
+
+abstract class DataRenderer implements RenderInterface {
    public function render($controller) {
       $this->messagesToDataArray($controller);
       $this->traversableToArray($controller);

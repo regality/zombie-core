@@ -1,6 +1,8 @@
 <?php
 
-class HtmlRenderer {
+require_once("RenderInterface.php");
+
+class HtmlRenderer implements RenderInterface {
    public function render($controller) {
       $root = $controller->config['zombie_root'];
       if ($controller->do_run) {
