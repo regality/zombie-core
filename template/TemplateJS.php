@@ -176,7 +176,7 @@ class ElseTagJS       extends EndStructureTagJS {
 
 class ForeachTagJS extends StructureTagJS {
    function __toString() {
-      $var_pat = "\\$[a-zA-z_].[a-zA-Z0-9_'\"\[\]]+";
+      $var_pat = "\\$[a-zA-Z_][a-zA-Z0-9_'\"\[\]]*";
       $fe_pat = "/\s*($var_pat)\s+as(:?\s+($var_pat)\s+(:?=>|:))?\s+($var_pat)/";
       preg_match($fe_pat, $this->contents, $matches);
       $iterable = PhpToJs::varToJs($matches[1]);

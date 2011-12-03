@@ -39,20 +39,17 @@ class HtmlRenderer implements RenderInterface {
          echo '<script type="text/javascript">';
          if (!empty($controller->errors)) {
             foreach ($controller->errors as $error) {
-               echo "zs.ui.error(\"" . 
-                    htmlentities($error, ENT_QUOTES) . "\");\n";
+               echo "zs.ui.error(" . json_encode($error) . ");\n";
             }
          }
          if (!empty($controller->warnings)) {
             foreach ($controller->warnings as $warning) {
-               echo "zs.ui.warn(\"" . 
-                    htmlentities($warning, ENT_QUOTES) . "\");\n";
+               echo "zs.ui.warn(" . json_encode($warning) . ");\n";
             }
          }
          if (!empty($controller->messages)) {
             foreach ($controller->messages as $message) {
-               echo "zs.ui.message(\"" . 
-                    htmlentities($message, ENT_QUOTES) . "\");\n";
+               echo "zs.ui.message(" . json_encode($message) . ");\n";
             }
          }
          echo '</script>';

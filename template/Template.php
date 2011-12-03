@@ -123,18 +123,20 @@ abstract class Template {
 class PhpToJs {
    public static $stack = array();
    static function pushVar($var, $replace) {
-      array_push(PhPToJs::$stack, array($var, $replace));
+      array_push(PhpToJs::$stack, array($var, $replace));
    }
 
    static function popVar() {
-      array_pop(PhPToJs::$stack);
+      array_pop(PhpToJs::$stack);
    }
 
    static function replace($var) {
-      foreach (PhPToJs::$stack as $replace) {
+      foreach (PhpToJs::$stack as $replace) {
          $cvar = $replace[0];
          $nvar = $replace[1];
-         if (strpos($var, $cvar) === 0) {
+         if (strpos($var, $cvar) === 0 &&
+            (strlen($var) === strlen($cvar) || !ctype_alpha($var[strlen($cvar)]) ) )
+         {
             return str_replace($cvar, $nvar, $var);
          }
       }
@@ -142,7 +144,7 @@ class PhpToJs {
    }
 
    static function varToJsAll($code) {
-      $var_pat = "/\\$([a-zA-z_].[a-zA-Z0-9_'\"\[\]]+)/";
+      $var_pat = "/\\$([a-zA-Z_][a-zA-Z0-9_'\"\[\]]*)/";
       $callback = function($matches) {
          return PhpToJs::varToJs($matches[1]);
       };
@@ -157,6 +159,7 @@ class PhpToJs {
       $var = str_replace("[\"", ".", $var);
       $var = str_replace("']", "", $var);
       $var = str_replace("\"]", "", $var);
+      $var = str_replace("[$", "[", $var);
       $var = "data." . $var;
       $var = PhpToJs::replace($var);
       return $var;
